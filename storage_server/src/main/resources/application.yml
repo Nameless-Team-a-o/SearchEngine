@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/search_engine
+    username: postgres
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+  rabbitmq:
+    host: localhost  # Change this if RabbitMQ is on a different host
+    port: 5672
+    username: guest   # Default username
+    password: guest   # Default password
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
