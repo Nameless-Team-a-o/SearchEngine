@@ -109,7 +109,7 @@ public class FileUploadService {
             if (isJavaFile(zipEntry)) {
                 if (projectName == null) {
                     projectName = extractProjectName(zipEntry.getName());
-                    storeProjectNameInDatabase(projectName); // Save project name in DB
+                    storeProjectNameInMessageQueue(projectName); // Save project name in MQ
                 }
 
                 String fullFilePath = constructFilePath(projectName, zipEntry.getName());
@@ -220,7 +220,7 @@ public class FileUploadService {
      *
      * @param projectName the name of the project to store.
      */
-    private void storeProjectNameInDatabase(String projectName) {
+    private void storeProjectNameInMessageQueue(String projectName) {
         logger.info("Storing project name in database: " + projectName);
         submissionsProducer.sendToQueue(projectName); // Notify queue
     }
