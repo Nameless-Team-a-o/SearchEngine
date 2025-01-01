@@ -29,16 +29,12 @@ public class FileUploadController {
 
             fileUploadService.processZipFileAndStoreJavaFiles(file, token);
 
-            // إرجاع رسالة نجاح
             return ResponseEntity.ok("ZIP file processed successfully. Java files have been stored.");
         } catch (IllegalArgumentException e) {
-            // التعامل مع الأخطاء المتعلقة بالتحقق
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (IOException e) {
-            // التعامل مع أخطاء معالجة الملف
             return ResponseEntity.status(500).body("Error processing the .zip file");
         } catch (Exception e) {
-            // التعامل مع الأخطاء غير المتوقعة
             return ResponseEntity.status(500).body("An unexpected error occurred");
         }
     }
