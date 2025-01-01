@@ -17,7 +17,8 @@ public class Submissions {
     private Long id;
     private String filePath;
     private boolean processed;
-    private String projectname;
+
+    private Long projectId;
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
@@ -27,7 +28,29 @@ public class Submissions {
         this.processed = processed;
     }
 
-    public void setProjectname(String projectname) {
-        this.projectname = projectname;
+
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public boolean isProcessed() {
+        return processed;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getProject_Id() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 }

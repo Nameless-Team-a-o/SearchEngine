@@ -4,7 +4,18 @@ import com.nameless.storage_server.entity.Submissions;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository
+import java.util.List;
 
-public interface SubmissionsRepository extends JpaRepository<Submissions,Long> {
+@Repository
+public interface SubmissionsRepository extends JpaRepository<Submissions, Long> {
+    List<Submissions> findByProjectIdAndProcessedFalse(Long projectId);
+
+    /**
+     * Finds all unprocessed submissions by project name.
+     *
+     * @param projectName the project name.
+     * @return a list of unprocessed submissions.
+     */
+
+
 }
