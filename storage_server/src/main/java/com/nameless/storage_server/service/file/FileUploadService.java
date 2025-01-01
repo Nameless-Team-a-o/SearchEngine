@@ -28,8 +28,7 @@ import java.util.logging.Logger;
 @Service
 public class FileUploadService {
 
-    private static final String STORAGE_DIRECTORY =
-            "C:/Users/user/Desktop/System design training/spring/search engine/storage_server/uploaded_java_files/";
+    private static final String STORAGE_DIRECTORY = "uploaded_java_files";
     private static final Logger logger = Logger.getLogger(FileUploadService.class.getName());
 
     private final SubmissionsRepository submissionsRepository;
@@ -84,7 +83,7 @@ public class FileUploadService {
     }
 
     private void createStorageDirectory() throws IOException {
-        Path storagePath = Paths.get(STORAGE_DIRECTORY);
+        Path storagePath = Paths.get(STORAGE_DIRECTORY).toAbsolutePath();
         if (!Files.exists(storagePath)) {
             Files.createDirectories(storagePath);
             logger.info("Created storage directory: " + storagePath);
@@ -104,12 +103,12 @@ public class FileUploadService {
 
                 String filePath = constructFilePath(projectName, zipEntry.getName(), userId);
                 saveJavaFile(zis, filePath);
-                storeFilePathInDatabase(filePath, projectName);
+                storeFilePathInDatabase(filePath, projectName ,userId);
             }
             zis.closeEntry();
         }
 
-        enqueueProjectForProcessing(projectName);
+        enqueueProjectForProcessing(projectName ,userId);
     }
 
     private boolean isJavaFile(ZipEntry zipEntry) {
@@ -130,8 +129,12 @@ public class FileUploadService {
     }
 
     private String constructFilePath(String projectName, String fileName, Long userId) {
-        return String.format("%s/%d/%s/%s",
-                STORAGE_DIRECTORY, userId, projectName, fileName);
+        Optional<Project> project = projectRepository.findTopByProjectNameAndUserIdOrderByCreatedAtDesc(projectName, userId);
+        if(project.isPresent()) {
+            return Paths.get(STORAGE_DIRECTORY, String.valueOf(userId) ,project.get().getProject_id().toString() , fileName).toAbsolutePath().toString();
+
+        }
+        return null;
     }
 
     private void saveJavaFile(ZipInputStream zis, String filePath) throws IOException {
@@ -150,8 +153,8 @@ public class FileUploadService {
         logger.info("Saved Java file: " + filePath);
     }
 
-    private void storeFilePathInDatabase(String filePath, String projectName) {
-        Project project = projectRepository.findTopByProjectNameOrderByCreatedAtDesc(projectName)
+    private void storeFilePathInDatabase(String filePath, String projectName, Long userId) {
+        Project project = projectRepository.findTopByProjectNameAndUserIdOrderByCreatedAtDesc(projectName , userId)
                 .orElseThrow(() -> new IllegalArgumentException("Project not found: " + projectName));
 
         Submissions submission = new Submissions();
@@ -163,8 +166,8 @@ public class FileUploadService {
         logger.info("Stored file metadata in database: " + filePath);
     }
 
-    private void enqueueProjectForProcessing(String projectName) {
-        Project project = projectRepository.findTopByProjectNameOrderByCreatedAtDesc(projectName)
+    private void enqueueProjectForProcessing(String projectName, Long userId) {
+        Project project = projectRepository.findTopByProjectNameAndUserIdOrderByCreatedAtDesc(projectName , userId)
                 .orElseThrow(() -> new IllegalArgumentException("Project not found for queueing: " + projectName));
 
         submissionsProducer.sendToQueue(project.getProject_id());

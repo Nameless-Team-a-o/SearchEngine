@@ -9,6 +9,6 @@ import java.util.Optional;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     Optional<Project> findByProjectName(String projectName);
-    Optional<Project> findTopByProjectNameOrderByCreatedAtDesc(String projectName);
+    Optional<Project> findTopByProjectNameAndUserIdOrderByCreatedAtDesc(String projectName, Long userId);
 
 }
