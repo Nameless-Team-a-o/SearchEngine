@@ -12,38 +12,54 @@ import java.util.stream.Collectors;
 @Service
 public class TokenNormalizer {
 
-    private final List<NormalizationStep> normalizationSteps;
+    private final NormalizationStep lemmatization;
+    private final NormalizationStep stemming;
     private final NormalizeTokenRepository normalizeTokenRepository;
 
     // Constructor injection of the NormalizeTokenRepository and NormalizationStep implementations
+    @Autowired
     public TokenNormalizer(NormalizeTokenRepository normalizeTokenRepository,
-                           LemmatizationStemmingStep lemmatizationStemmingStep) {
-        this.normalizationSteps = List.of(lemmatizationStemmingStep);
+                           Lemmatization lemmatization,
+                           Stemming stemming) {
+        this.lemmatization = lemmatization;
+        this.stemming = stemming;
         this.normalizeTokenRepository = normalizeTokenRepository;
     }
 
-    public void normalizeTokens(List<Token> tokens) {
-        // Process each token through the normalization steps
+    public void normalizeTokens(List<Token> tokens, boolean useStemming, boolean useLemmatization) {
+        // Process each token through the normalization steps based on conditions
         List<NormalizeToken> normalizedTokens = tokens.stream()
-                .map(this::normalizeToken)
+                .map(token -> normalizeToken(token, useStemming, useLemmatization))
                 .collect(Collectors.toList());
 
         // Save normalized tokens to the repository
         normalizeTokenRepository.saveAll(normalizedTokens);
     }
 
-    private NormalizeToken normalizeToken(Token token) {
-        // Apply each normalization step to the token
-        String normalizedToken = normalizationSteps.stream()
-                .map(step -> step.normalize(token.getToken()))
-                .collect(Collectors.joining("")); // You can use another delimiter if necessary
+    private NormalizeToken normalizeToken(Token token, boolean useStemming, boolean useLemmatization) {
+        String normalizedToken = token.getToken();
+
+        // Case 1: Only Lemmatization
+        if (useLemmatization && !useStemming) {
+            normalizedToken = lemmatization.normalize(normalizedToken);
+        }
+        // Case 2: Only Stemming
+        else if (useStemming && !useLemmatization) {
+            normalizedToken = stemming.normalize(normalizedToken);
+        }
+        // Case 3: Lemmatization first, then Stemming (order changed)
+        else if (useLemmatization && useStemming) {
+            String lemmatizedToken = lemmatization.normalize(normalizedToken); // Apply lemmatization first
+            normalizedToken = stemming.normalize(lemmatizedToken); // Apply stemming after lemmatization
+        }
 
         // Create a new NormalizeToken entity
         NormalizeToken normalized = new NormalizeToken();
-        normalized.setToken(normalizedToken.toLowerCase());
+        normalized.setToken(normalizedToken);
         normalized.setType(token.getType());
         normalized.setLineNumber(token.getLineNumber());
         normalized.setClassID(token.getClassID());
+
         return normalized;
     }
 }

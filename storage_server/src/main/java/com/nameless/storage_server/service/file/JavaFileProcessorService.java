@@ -73,7 +73,7 @@ public class JavaFileProcessorService implements FileProcessorService {
 
             System.out.println("Token: " + token.getToken() + ", Type: " + token.getType() + ", Line Number: " + token.getLineNumber()+ ", Class ID: " + token.getClassID()) ;
         }
-        tokenNormalizer.normalizeTokens(tokens);
+        tokenNormalizer.normalizeTokens(tokens,true,true);
         return tokens;
     }
 }
