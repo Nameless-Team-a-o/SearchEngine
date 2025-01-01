@@ -11,14 +11,20 @@ public class TokenSplitter {
         // Handle snake_case
         String[] parts = token.split("_");
 
-        // Process each part and convert them to lowercase, no need to capitalize
-        for (String part : parts) {
-            if (parts.length > 1) {
-                words.addAll(splitCamelCase(part.toLowerCase()));
-            } else {
-                words.addAll(splitCamelCase(part));
-            }
+        if(parts.length == 1) {
+            words.addAll(splitCamelCase(parts[0]));
+
         }
+        // Process each part and convert them to lowercase, no need to capitalize
+        else{
+            String finalWord = parts[0].toLowerCase();
+            for (int i = 1 ; i < parts.length ; i++) {
+                  parts[i] = parts[i].substring(0, 1).toUpperCase() + parts[i].substring(1).toLowerCase();
+                  finalWord = finalWord + parts[i];
+            }
+                    words.addAll(splitCamelCase(finalWord));
+        }
+
 
         return words;
     }

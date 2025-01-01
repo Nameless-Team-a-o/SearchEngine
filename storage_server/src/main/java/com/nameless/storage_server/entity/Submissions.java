@@ -28,7 +28,9 @@ public class Submissions {
         this.processed = processed;
     }
 
-
+    public Long getProjectId() {
+        return projectId;
+    }
 
     public String getFilePath() {
         return filePath;

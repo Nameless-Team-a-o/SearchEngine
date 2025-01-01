@@ -2,9 +2,13 @@ package com.nameless.storage_server.service.file;
 
 import com.nameless.storage_server.entity.Project;
 import com.nameless.storage_server.entity.Submissions;
+import com.nameless.storage_server.entity.User;
+import com.nameless.storage_server.repository.UserRepository;
+import com.nameless.storage_server.service.jwt.JwtService;
 import com.nameless.storage_server.service.queue.SubmissionsProducer;
 import com.nameless.storage_server.repository.ProjectRepository;
 import com.nameless.storage_server.repository.SubmissionsRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,6 +41,11 @@ public class FileUploadService {
     private final ProjectRepository projectRepository;
     private final SubmissionsProducer submissionsProducer;
 
+    @Autowired
+    private  JwtService jwtService;
+    @Autowired
+    private UserRepository userRepository;
+
     /**
      * Constructs a FileUploadService with the specified dependencies.
      *
@@ -52,20 +61,24 @@ public class FileUploadService {
     /**
      * Processes an uploaded .zip file, extracting and storing .java files.
      *
-     * @param file the uploaded .zip file.
+     * @param file  the uploaded .zip file.
+     * @param token
      * @throws IOException if an I/O error occurs during processing.
      */
-    public void processZipFileAndStoreJavaFiles(MultipartFile file) throws IOException {
+    public void processZipFileAndStoreJavaFiles(MultipartFile file, String token) throws IOException {
         logger.info("Starting to process uploaded zip file: " + file.getOriginalFilename());
         // Validate that the uploaded file is a .zip file
-        validateZipFile(file);
+        validateZipFile(file) ;
+        String username = jwtService.extractUsernameFromAccess(token.substring(7));
+        Optional<User> user = userRepository.findByUsername(username);
+
 
         // Ensure the storage directory exists
         createStorageDirectory();
 
         // Process the zip file
         try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
-            processZipEntries(zis);
+            processZipEntries(zis , user.get().getId());
         } catch (Exception e) {
             logger.severe("Error while processing zip file: " + e.getMessage());
             throw e;
@@ -105,9 +118,10 @@ public class FileUploadService {
      * Processes the entries of the provided .zip input stream, extracting and storing .java files.
      *
      * @param zis the input stream of the .zip file.
+     * @param id
      * @throws IOException if an error occurs during processing.
      */
-    private void processZipEntries(ZipInputStream zis) throws IOException {
+    private void processZipEntries(ZipInputStream zis, Long id) throws IOException {
         ZipEntry zipEntry;
         String projectName = null;
 
@@ -117,12 +131,12 @@ public class FileUploadService {
                 if (projectName == null) {
                     projectName = extractProjectName(zipEntry.getName());
                     logger.info("Extracted project name: " + projectName);
-                    storeProjectIdInDatabase(projectName); // Save project name in DB
+                    storeProjectIdInDatabase(projectName , id); // Save project name in DB
                 }
 
-                String fullFilePath = constructFilePath(projectName, zipEntry.getName());
+                String fullFilePath = constructFilePath(projectName, zipEntry.getName() , id);
                 logger.info("Constructed file path: " + fullFilePath);
-                processJavaFile(zis, fullFilePath, projectName); // Process file synchronously
+                processJavaFile(zis, fullFilePath, projectName ); // Process file synchronously
             }
             zis.closeEntry();
         }
@@ -163,16 +177,17 @@ public class FileUploadService {
      * Constructs the full file path for a given project and file name.
      *
      * @param projectName the project name.
-     * @param fileName the file name.
+     * @param fileName    the file name.
+     * @param id
      * @return the constructed file path.
      */
-    private String constructFilePath(String projectName, String fileName) {
+    private String constructFilePath(String projectName, String fileName, Long id) {
         Optional<Project> project = projectRepository.findTopByProjectNameOrderByCreatedAtDesc(projectName);
         if (project.isPresent()) {
             if (!fileName.startsWith(projectName)) {
-                return STORAGE_DIRECTORY + project.get().getProject_id() + "/" + projectName + "/" + fileName;
+                return STORAGE_DIRECTORY + id  + "/" + project.get().getProject_id() + "/" + projectName + "/" + fileName;
             } else {
-                return STORAGE_DIRECTORY + project.get().getProject_id() + "/" + fileName; // No need to add project name again
+                return STORAGE_DIRECTORY  + id  + "/" + project.get().getProject_id() + "/" + fileName; // No need to add project name again
             }
         } else {
             logger.warning("Project not found when constructing file path: " + projectName);
@@ -250,10 +265,12 @@ public class FileUploadService {
      * Logs and optionally stores the project ID in the MessageQueue.
      *
      * @param projectName the ID of the project to store.
+     * @param id
      */
-    private void storeProjectIdInDatabase(String projectName) {
+    private void storeProjectIdInDatabase(String projectName, Long id) {
         Project project = new Project();
         project.setProjectName(projectName);
+        project.setUserId(id);
         projectRepository.save(project);
     }
 

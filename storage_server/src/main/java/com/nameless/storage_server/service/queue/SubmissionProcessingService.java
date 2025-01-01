@@ -71,6 +71,7 @@ public class SubmissionProcessingService {
                 Clazz clazz = new Clazz();
                 clazz.setClassName(extractClassName(submission.getFilePath()));
                 clazz.setfilePath(submission.getFilePath());
+                clazz.setProjectId(submission.getProjectId());
                 clazzRepository.save(clazz);
 
                 // Log the file content for debugging

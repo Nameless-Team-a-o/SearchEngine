@@ -11,8 +11,15 @@ public class Clazz {
     private Long id;
     private String className;
     private String filePath;
+    private Long projectId;
 
+    public Long getProjectId() {
+        return projectId;
+    }
 
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
 
     public void setfilePath(String packageName) {
         this.filePath = packageName;

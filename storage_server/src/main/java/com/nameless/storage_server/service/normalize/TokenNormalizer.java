@@ -14,16 +14,18 @@ public class TokenNormalizer {
 
     private final NormalizationStep lemmatization;
     private final NormalizationStep stemming;
+    private final NormalizationStep LemmatizationStemmingStep;
     private final NormalizeTokenRepository normalizeTokenRepository;
 
     // Constructor injection of the NormalizeTokenRepository and NormalizationStep implementations
     @Autowired
     public TokenNormalizer(NormalizeTokenRepository normalizeTokenRepository,
                            Lemmatization lemmatization,
-                           Stemming stemming) {
+                           Stemming stemming, NormalizationStep lemmatizationStemmingStep) {
         this.lemmatization = lemmatization;
         this.stemming = stemming;
         this.normalizeTokenRepository = normalizeTokenRepository;
+        LemmatizationStemmingStep = lemmatizationStemmingStep;
     }
 
     public void normalizeTokens(List<Token> tokens, boolean useStemming, boolean useLemmatization) {
@@ -49,8 +51,7 @@ public class TokenNormalizer {
         }
         // Case 3: Lemmatization first, then Stemming (order changed)
         else if (useLemmatization && useStemming) {
-            String lemmatizedToken = lemmatization.normalize(normalizedToken); // Apply lemmatization first
-            normalizedToken = stemming.normalize(lemmatizedToken); // Apply stemming after lemmatization
+            normalizedToken = LemmatizationStemmingStep.normalize(normalizedToken);
         }
 
         // Create a new NormalizeToken entity
