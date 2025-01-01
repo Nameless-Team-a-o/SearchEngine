@@ -25,3 +25,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 server:
   port: 8082
+
+nlp:
+  model:
+    path: "C:\\Users\\user\\Desktop\\System design training\\spring\\search engine\\storage_server\\english-left3words-distsim.tagger"

@@ -18,62 +18,92 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Service for processing Java files to extract tokens and normalize them.
+ */
 @Service
 public class JavaFileProcessorService implements FileProcessorService {
 
-    // Autowire the extractors
-    @Autowired
-    private AttributeExtractor attributeExtractor;
-    @Autowired
-    private ClassExtractor classExtractor;
-    @Autowired
-    private DataTypeExtractor dataTypeExtractor;
-    @Autowired
-    private MethodExtractor methodExtractor;
-
-    @Autowired
-    private TokenRepository tokenRepository;
-
-
-    private  final TokenNormalizer  tokenNormalizer;
-
-    public JavaFileProcessorService(TokenNormalizer tokenNormalizer) {
-        this.tokenNormalizer = tokenNormalizer;
-    }
-
     private static final Logger logger = Logger.getLogger(JavaFileProcessorService.class.getName());
 
+    private final AttributeExtractor attributeExtractor;
+    private final ClassExtractor classExtractor;
+    private final DataTypeExtractor dataTypeExtractor;
+    private final MethodExtractor methodExtractor;
+    private final TokenNormalizer tokenNormalizer;
+    private final TokenRepository tokenRepository;
+
+    @Autowired
+    public JavaFileProcessorService(AttributeExtractor attributeExtractor,
+                                    ClassExtractor classExtractor,
+                                    DataTypeExtractor dataTypeExtractor,
+                                    MethodExtractor methodExtractor,
+                                    TokenNormalizer tokenNormalizer,
+                                    TokenRepository tokenRepository) {
+        this.attributeExtractor = attributeExtractor;
+        this.classExtractor = classExtractor;
+        this.dataTypeExtractor = dataTypeExtractor;
+        this.methodExtractor = methodExtractor;
+        this.tokenNormalizer = tokenNormalizer;
+        this.tokenRepository = tokenRepository;
+    }
+
+    /**
+     * Processes a Java file, extracting tokens and storing them in the database.
+     *
+     * @param fileCode the Java file's code as a string.
+     * @param clazz    the class metadata associated with the file.
+     * @return a list of extracted and normalized tokens.
+     */
     @Override
     public List<Token> processFile(String fileCode, Clazz clazz) {
         List<Token> tokens = new ArrayList<>();
 
-        // Configure the parser with custom settings
-        ParserConfiguration configuration = new ParserConfiguration();
-        JavaParser parser = new JavaParser(configuration);
+        CompilationUnit compilationUnit = parseJavaCode(fileCode);
+        extractTokens(compilationUnit, tokens, clazz);
 
-        // Parse the Java code into a CompilationUnit using the custom configuration
-        CompilationUnit compilationUnit = parser.parse(fileCode).getResult().orElse(null);
+        logger.info("Normalizing tokens...");
+        tokenNormalizer.normalizeTokens(tokens, true, true);
 
-        // Check if parsing was successful
-        if (compilationUnit == null) {
-            throw new RuntimeException("Failed to parse the Java code.");
-        }
+        return tokens;
+    }
 
-        // Extract tokens using the respective extractors (now autowired)
+    /**
+     * Parses Java code into a CompilationUnit.
+     *
+     * @param fileCode the Java code to parse.
+     * @return the parsed CompilationUnit.
+     * @throws RuntimeException if parsing fails.
+     */
+    private CompilationUnit parseJavaCode(String fileCode) {
+        logger.info("Parsing Java code...");
+        JavaParser parser = new JavaParser(new ParserConfiguration());
+        return parser.parse(fileCode)
+                .getResult()
+                .orElseThrow(() -> new RuntimeException("Failed to parse the Java code."));
+    }
+
+    /**
+     * Extracts tokens from a CompilationUnit using various extractors and stores them in the database.
+     *
+     * @param compilationUnit the parsed CompilationUnit.
+     * @param tokens          the list to which extracted tokens will be added.
+     * @param clazz           the associated class metadata.
+     */
+    private void extractTokens(CompilationUnit compilationUnit, List<Token> tokens, Clazz clazz) {
+        logger.info("Extracting tokens...");
+
         tokens.addAll(attributeExtractor.extract(compilationUnit));
         tokens.addAll(classExtractor.extract(compilationUnit));
         tokens.addAll(dataTypeExtractor.extract(compilationUnit));
         tokens.addAll(methodExtractor.extract(compilationUnit));
 
-        // Log the extracted tokens using a proper logger
-        logger.info("Extracted Tokens:");
-        for (Token token : tokens) {
+        tokens.forEach(token -> {
             token.setClassID(clazz.getId());
             tokenRepository.save(token);
 
-            System.out.println("Token: " + token.getToken() + ", Type: " + token.getType() + ", Line Number: " + token.getLineNumber()+ ", Class ID: " + token.getClassID()) ;
-        }
-        tokenNormalizer.normalizeTokens(tokens,true,true);
-        return tokens;
+            logger.info(String.format("Saved Token: %s, Type: %s, Line Number: %d, Class ID: %d",
+                    token.getToken(), token.getType(), token.getLineNumber(), token.getClassID()));
+        });
     }
 }

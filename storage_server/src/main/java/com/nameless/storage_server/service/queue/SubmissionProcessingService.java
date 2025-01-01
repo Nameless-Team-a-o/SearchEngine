@@ -1,10 +1,8 @@
 package com.nameless.storage_server.service.queue;
 
-
 import com.nameless.storage_server.entity.Clazz;
 import com.nameless.storage_server.entity.Submissions;
 import com.nameless.storage_server.repository.ClazzRepository;
-
 import com.nameless.storage_server.repository.SubmissionsRepository;
 import com.nameless.storage_server.service.file.JavaFileProcessorService;
 import org.springframework.stereotype.Service;
@@ -23,23 +21,23 @@ public class SubmissionProcessingService {
     private final JavaFileProcessorService fileProcessorService;
     private static final Logger logger = Logger.getLogger(SubmissionProcessingService.class.getName());
 
-    public SubmissionProcessingService(SubmissionsRepository submissionsRepository, ClazzRepository clazzRepository, JavaFileProcessorService fileProcessorService) {
+    public SubmissionProcessingService(SubmissionsRepository submissionsRepository,
+                                       ClazzRepository clazzRepository,
+                                       JavaFileProcessorService fileProcessorService) {
         this.submissionsRepository = submissionsRepository;
         this.clazzRepository = clazzRepository;
         this.fileProcessorService = fileProcessorService;
     }
 
     /**
-     * Processes all files related to the given project name.
+     * Processes all submissions for a given project ID.
      *
-     * @param projectId the name of the project.
+     * @param projectId the ID of the project.
      */
     public void processSubmissionsByProject(Long projectId) {
-        logger.info("Fetching submissions for project: " + projectId);
+        logger.info("Starting submission processing for project: " + projectId);
 
-        // Fetch all submissions for the given project
         List<Submissions> submissions = submissionsRepository.findByProjectIdAndProcessedFalse(projectId);
-
         if (submissions.isEmpty()) {
             logger.warning("No unprocessed submissions found for project: " + projectId);
             return;
@@ -49,47 +47,62 @@ public class SubmissionProcessingService {
     }
 
     /**
-     * Processes a single submission file, extracts its tokens, and updates the status.
+     * Processes a single submission.
      *
      * @param submission the submission to process.
      */
     private void processSubmission(Submissions submission) {
+        logger.info("Processing submission with ID: " + submission.getId());
+
+        Path filePath = Path.of(submission.getFilePath());
+        if (!Files.exists(filePath)) {
+            logger.severe("File does not exist: " + filePath);
+            return;
+        }
+
         try {
-            logger.info("Processing submission: " + submission.getFilePath());
-
-            // Check if the file exists before reading
-            Path path = Path.of(submission.getFilePath());
-            if (Files.exists(path)) {
-                // Read file content
-                String fileContent = Files.readString(path);
-
-                if (fileContent.isEmpty()) {
-                    logger.warning("File content is empty for file: " + submission.getFilePath());
-                }
-
-                // Save the file as a Clazz entity
-                Clazz clazz = new Clazz();
-                clazz.setClassName(extractClassName(submission.getFilePath()));
-                clazz.setfilePath(submission.getFilePath());
-                clazz.setProjectId(submission.getProjectId());
-                clazzRepository.save(clazz);
-
-                // Log the file content for debugging
-                logger.info("File Content: " + fileContent);
-
-                // Process file content
-                fileProcessorService.processFile(fileContent , clazz);
-
-                // Mark submission as processed
-                submission.setProcessed(true);
-                submissionsRepository.save(submission);
-            } else {
-                logger.severe("File does not exist: " + submission.getFilePath());
+            String fileContent = Files.readString(filePath);
+            if (fileContent.isBlank()) {
+                logger.warning("File content is empty for: " + filePath);
+                return;
             }
 
+            Clazz clazz = createClazzEntity(submission, fileContent);
+            clazzRepository.save(clazz);
+
+            fileProcessorService.processFile(fileContent, clazz);
+
+            markSubmissionAsProcessed(submission);
+
         } catch (IOException e) {
-            logger.severe("Error reading file: " + submission.getFilePath() + " - " + e.getMessage());
+            logger.severe("Error reading file: " + filePath + " - " + e.getMessage());
         }
+    }
+
+    /**
+     * Creates a Clazz entity from a submission.
+     *
+     * @param submission  the submission.
+     * @param fileContent the file content.
+     * @return the Clazz entity.
+     */
+    private Clazz createClazzEntity(Submissions submission, String fileContent) {
+        Clazz clazz = new Clazz();
+        clazz.setClassName(extractClassName(submission.getFilePath()));
+        clazz.setfilePath(submission.getFilePath());
+        clazz.setProjectId(submission.getProjectId());
+        return clazz;
+    }
+
+    /**
+     * Marks a submission as processed.
+     *
+     * @param submission the submission to update.
+     */
+    private void markSubmissionAsProcessed(Submissions submission) {
+        submission.setProcessed(true);
+        submissionsRepository.save(submission);
+        logger.info("Submission marked as processed: " + submission.getId());
     }
 
     /**

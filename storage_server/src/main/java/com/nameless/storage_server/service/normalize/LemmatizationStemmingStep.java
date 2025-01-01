@@ -2,6 +2,7 @@ package com.nameless.storage_server.service.normalize;
 
 import com.nameless.storage_server.service.normalize.NormalizationStep;
 import edu.stanford.nlp.pipeline.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.tartarus.snowball.ext.EnglishStemmer;
 
@@ -14,15 +15,11 @@ public class LemmatizationStemmingStep implements NormalizationStep {
 
     private final StanfordCoreNLP lemmatizer;
 
-    public LemmatizationStemmingStep() {
-        // Specify the model path for the POS tagger
-        String modelPath = "C:\\Users\\user\\Desktop\\System design training\\spring\\search engine\\storage_server\\english-left3words-distsim.tagger";
+    public LemmatizationStemmingStep(@Value("${nlp.model.path}") String modelPath) {
 
-        // Configure Stanford CoreNLP with lemmatization and POS tagging
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize,ssplit,pos,lemma");
 
-        // Set the custom POS model path
         props.setProperty("pos.model", modelPath);
 
         lemmatizer = new StanfordCoreNLP(props);
