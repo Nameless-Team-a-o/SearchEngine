@@ -29,22 +29,24 @@ public class TokenSplitter {
         return words;
     }
 
-    private static List<String> splitCamelCase(String str) {
-        List<String> words = new ArrayList<>();
+    private static List<String> splitCamelCase(String input) {
+        List<String> result = new ArrayList<>();
         StringBuilder word = new StringBuilder();
 
-        for (char c : str.toCharArray()) {
-            if (Character.isUpperCase(c) && word.length() > 0) {
-                words.add(word.toString());
-                word.setLength(0);
+        for (char c : input.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                if (!word.isEmpty()) {
+                    result.add(word.toString().toLowerCase());
+                }
+                word = new StringBuilder().append(c);
+            } else {
+                word.append(c);
             }
-            word.append(Character.toLowerCase(c)); // Convert to lowercase immediately
+        }
+        if (!word.isEmpty()) {
+            result.add(word.toString().toLowerCase());
         }
 
-        if (word.length() > 0) {
-            words.add(word.toString());
-        }
-
-        return words;
+        return result;
     }
 }

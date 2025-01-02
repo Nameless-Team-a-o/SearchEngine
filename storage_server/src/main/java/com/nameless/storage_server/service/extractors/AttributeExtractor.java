@@ -13,16 +13,16 @@ import java.util.List;
 public class AttributeExtractor implements ExtractorService {
 
     @Override
-    public List<Token> extract(CompilationUnit compilationUnit) {
+    public List<Token> extract(CompilationUnit compilationUnit, Long classId) {
         List<Token> tokens = new ArrayList<>();
 
-        // Find all field declarations (attributes)
         compilationUnit.findAll(FieldDeclaration.class).forEach(fieldDecl -> {
             fieldDecl.getVariables().forEach(variable -> {
                 Token token = new Token();
-                token.setToken(variable.getNameAsString()); // Name of the field
-                token.setType(TokenType.ATTRIBUTE); // Token type for attribute
-                token.setLineNumber((long) fieldDecl.getRange().get().begin.line); // Line number
+                token.setToken(variable.getNameAsString());
+                token.setType(TokenType.ATTRIBUTE);
+                token.setLineNumber((long) fieldDecl.getRange().get().begin.line);
+                token.setClassID(classId);
                 tokens.add(token);
             });
         });

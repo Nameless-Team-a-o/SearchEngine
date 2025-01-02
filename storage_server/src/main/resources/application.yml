@@ -28,4 +28,4 @@ server:
 
 nlp:
   model:
-    path: "C:\\Users\\user\\Desktop\\System design training\\spring\\search engine\\storage_server\\english-left3words-distsim.tagger"
+    path: "english-left3words-distsim.tagger"

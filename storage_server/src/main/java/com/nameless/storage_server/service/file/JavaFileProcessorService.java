@@ -93,13 +93,12 @@ public class JavaFileProcessorService implements FileProcessorService {
     private void extractTokens(CompilationUnit compilationUnit, List<Token> tokens, Clazz clazz) {
         logger.info("Extracting tokens...");
 
-        tokens.addAll(attributeExtractor.extract(compilationUnit));
-        tokens.addAll(classExtractor.extract(compilationUnit));
-        tokens.addAll(dataTypeExtractor.extract(compilationUnit));
-        tokens.addAll(methodExtractor.extract(compilationUnit));
+        tokens.addAll(attributeExtractor.extract(compilationUnit, clazz.getId() ));
+        tokens.addAll(classExtractor.extract(compilationUnit, clazz.getId()));
+        tokens.addAll(dataTypeExtractor.extract(compilationUnit,clazz.getId() ));
+        tokens.addAll(methodExtractor.extract(compilationUnit, clazz.getId()));
 
         tokens.forEach(token -> {
-            token.setClassID(clazz.getId());
             tokenRepository.save(token);
 
             logger.info(String.format("Saved Token: %s, Type: %s, Line Number: %d, Class ID: %d",

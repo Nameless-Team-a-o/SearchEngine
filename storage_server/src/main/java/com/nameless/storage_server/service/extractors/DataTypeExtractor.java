@@ -13,16 +13,16 @@ import java.util.List;
 public class DataTypeExtractor implements ExtractorService {
 
     @Override
-    public List<Token> extract(CompilationUnit compilationUnit) {
+    public List<Token> extract(CompilationUnit compilationUnit, Long classId) {
         List<Token> tokens = new ArrayList<>();
 
-        // Find all variable declarations
         compilationUnit.findAll(VariableDeclarator.class).forEach(varDecl -> {
-            Type type = varDecl.getType(); // Get the type of the variable
+            Type type = varDecl.getType();
             Token token = new Token();
-            token.setToken(type.asString()); // Set the data type as the token
-            token.setType(TokenType.DATATYPE); // Token type for data type
-            token.setLineNumber((long) varDecl.getRange().get().begin.line); // Line number
+            token.setToken(type.asString());
+            token.setType(TokenType.DATATYPE);
+            token.setLineNumber((long) varDecl.getRange().get().begin.line);
+            token.setClassID(classId);
             tokens.add(token);
         });
 

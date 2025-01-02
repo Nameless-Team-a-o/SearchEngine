@@ -13,15 +13,15 @@ import java.util.List;
 public class MethodExtractor implements ExtractorService {
 
     @Override
-    public List<Token> extract(CompilationUnit compilationUnit) {
+    public List<Token> extract(CompilationUnit compilationUnit, Long classId) {
         List<Token> tokens = new ArrayList<>();
 
-        // Find all method declarations
         compilationUnit.findAll(MethodDeclaration.class).forEach(methodDecl -> {
             Token token = new Token();
-            token.setToken(methodDecl.getNameAsString()); // Name of the method
-            token.setType(TokenType.METHOD); // Token type for method
-            token.setLineNumber((long) methodDecl.getRange().get().begin.line); // Line number
+            token.setToken(methodDecl.getNameAsString());
+            token.setType(TokenType.METHOD);
+            token.setLineNumber((long) methodDecl.getRange().get().begin.line);
+            token.setClassID(classId);
             tokens.add(token);
         });
 

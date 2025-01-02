@@ -6,5 +6,5 @@ import com.nameless.storage_server.entity.Token;
 import java.util.List;
 
 public interface ExtractorService {
-    List<Token> extract(CompilationUnit compilationUnit);
+    List<Token> extract(CompilationUnit compilationUnit  , Long classId);
 }
