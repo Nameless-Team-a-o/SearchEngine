@@ -48,7 +48,7 @@ public class TokenNormalizer {
         else if (useStemming && !useLemmatization) {
             normalizedToken = stemming.normalize(normalizedToken, false);
         }
-        // Case 3: Lemmatization first, then Stemming (order changed)
+        // Case 3: Lemmatization first, then Stemming
         else if (useLemmatization && useStemming) {
             normalizedToken = lemmatization.normalize(normalizedToken,true );
         }

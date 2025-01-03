@@ -3,12 +3,15 @@ package com.nameless.storage_server.service.queue;
 import com.nameless.storage_server.entity.User;
 import com.nameless.storage_server.exception.UserCreationException;
 import com.nameless.storage_server.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+
+    @Autowired
     public UserService(final UserRepository userRepository) {
         this.userRepository = userRepository;
     }

@@ -1,6 +1,7 @@
 package com.nameless.storage_server.service.queue;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.logging.Logger;
@@ -11,6 +12,7 @@ public class SubmissionsConsumer {
     private static final Logger logger = Logger.getLogger(SubmissionsConsumer.class.getName());
     private final SubmissionProcessingService submissionProcessingService;
 
+    @Autowired
     public SubmissionsConsumer(SubmissionProcessingService submissionProcessingService) {
         this.submissionProcessingService = submissionProcessingService;
     }

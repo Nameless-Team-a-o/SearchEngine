@@ -5,6 +5,7 @@ import com.nameless.storage_server.entity.Submissions;
 import com.nameless.storage_server.repository.ClazzRepository;
 import com.nameless.storage_server.repository.SubmissionsRepository;
 import com.nameless.storage_server.service.file.JavaFileProcessorService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ public class SubmissionProcessingService {
     private final JavaFileProcessorService fileProcessorService;
     private static final Logger logger = Logger.getLogger(SubmissionProcessingService.class.getName());
 
+    @Autowired
     public SubmissionProcessingService(SubmissionsRepository submissionsRepository,
                                        ClazzRepository clazzRepository,
                                        JavaFileProcessorService fileProcessorService) {

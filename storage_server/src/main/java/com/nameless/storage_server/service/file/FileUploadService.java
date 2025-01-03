@@ -8,6 +8,7 @@ import com.nameless.storage_server.service.jwt.JwtService;
 import com.nameless.storage_server.service.queue.SubmissionsProducer;
 import com.nameless.storage_server.repository.ProjectRepository;
 import com.nameless.storage_server.repository.SubmissionsRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +27,7 @@ import java.util.logging.Logger;
  * Service class for handling file upload and processing operations.
  */
 @Service
+@Transactional
 public class FileUploadService {
 
     private static final String STORAGE_DIRECTORY = "uploaded_java_files";

@@ -4,7 +4,6 @@ import com.nameless.storage_server.service.file.FileUploadService;
 import com.nameless.storage_server.service.jwt.JwtService;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,11 +12,15 @@ import java.io.IOException;
 @RestController
 public class FileUploadController {
 
-    @Autowired
-    private JwtService jwtService;
+    private final JwtService jwtService;
+    private final FileUploadService fileUploadService;
 
     @Autowired
-    private FileUploadService fileUploadService;
+    public FileUploadController(JwtService jwtService,
+                                FileUploadService fileUploadService) {
+        this.jwtService = jwtService;
+        this.fileUploadService = fileUploadService;
+    }
 
     @PostMapping("/upload/zip")
     public ResponseEntity<String> uploadZipFile(@RequestParam("file") MultipartFile file, @RequestHeader("Authorization") String token) {
