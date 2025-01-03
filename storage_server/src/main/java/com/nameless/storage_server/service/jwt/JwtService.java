@@ -22,7 +22,7 @@ public class JwtService {
 
     // Method to extract username from access token
     public String extractUsernameFromAccess(String token) {
-        // Removed logging statements to prevent logging
+        token = token.substring(7);
         return extractClaim(token, Claims::getSubject); // Extract the username (subject) claim
     }
 

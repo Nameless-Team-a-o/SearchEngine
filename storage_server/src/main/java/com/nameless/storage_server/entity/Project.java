@@ -12,15 +12,22 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long projectId;
 
-    private Long userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     private String projectName;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    public Project(String projectName, User user) {
+        this.projectName = projectName;
+        this.user = user;
+    }
+
     @PrePersist
-    protected void onCreate() {
+    private void onCreate() {
         createdAt = LocalDateTime.now();
     }
 
@@ -32,12 +39,20 @@ public class Project {
         this.projectId = projectId;
     }
 
-    public Long getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -47,18 +62,5 @@ public class Project {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-
-    public String getProjectName() {
-        return projectName;
-    }
-
-    public Long getProject_id() {
-        return projectId;
-    }
-
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
-    }
-
 }
 

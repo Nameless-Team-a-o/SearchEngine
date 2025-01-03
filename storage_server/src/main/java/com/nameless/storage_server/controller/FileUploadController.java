@@ -23,14 +23,15 @@ public class FileUploadController {
     }
 
     @PostMapping("/upload/zip")
-    public ResponseEntity<String> uploadZipFile(@RequestParam("file") MultipartFile file, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file, @RequestHeader("Authorization") String token) {
         try {
+            // TODO: Replace with spring security
             boolean isTokenValid =  jwtService.validateToken(token);
             if (!isTokenValid) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token.");
             }
 
-            fileUploadService.processZipFileAndStoreJavaFiles(file, token);
+            fileUploadService.processZipFile(file, token);
 
             return ResponseEntity.ok("ZIP file processed successfully. Java files have been stored.");
         } catch (IllegalArgumentException e) {

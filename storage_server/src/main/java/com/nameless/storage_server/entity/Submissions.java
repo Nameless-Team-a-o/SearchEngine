@@ -5,39 +5,27 @@ import jakarta.persistence.*;
 
 import lombok.*;
 
-
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
 public class Submissions {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
+
     private String filePath;
     private boolean processed;
 
-    private Long projectId;
-
-    public void setFilePath(String filePath) {
+    public Submissions(String filePath, Project project) {
         this.filePath = filePath;
+        this.project = project;
     }
 
-    public void setProcessed(boolean processed) {
-        this.processed = processed;
-    }
-
-    public Long getProjectId() {
-        return projectId;
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public boolean isProcessed() {
-        return processed;
+    @PrePersist
+    protected void onCreate() {
+        this.processed = false;
     }
 
     public Long getId() {
@@ -48,11 +36,27 @@ public class Submissions {
         this.id = id;
     }
 
-    public Long getProject_Id() {
-        return projectId;
+    public Project getProject() {
+        return project;
     }
 
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public boolean isProcessed() {
+        return processed;
+    }
+
+    public void setProcessed(boolean processed) {
+        this.processed = processed;
     }
 }

@@ -1,4 +1,4 @@
-package com.nameless.storage_server.service.queue;
+package com.nameless.storage_server.service.user;
 
 import com.nameless.storage_server.entity.User;
 import com.nameless.storage_server.exception.UserCreationException;
@@ -30,5 +30,10 @@ public class UserService {
         } catch (Exception e) {
             throw new UserCreationException("Failed to create user: " + username, e);
         }
+    }
+
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
     }
 }

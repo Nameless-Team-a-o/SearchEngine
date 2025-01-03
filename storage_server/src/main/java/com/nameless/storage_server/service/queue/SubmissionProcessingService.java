@@ -69,7 +69,7 @@ public class SubmissionProcessingService {
                 return;
             }
 
-            Clazz clazz = createClazzEntity(submission, fileContent);
+            Clazz clazz = createClazzEntity(submission);
             clazzRepository.save(clazz);
 
             fileProcessorService.processFile(fileContent, clazz);
@@ -85,14 +85,13 @@ public class SubmissionProcessingService {
      * Creates a Clazz entity from a submission.
      *
      * @param submission  the submission.
-     * @param fileContent the file content.
      * @return the Clazz entity.
      */
-    private Clazz createClazzEntity(Submissions submission, String fileContent) {
+    private Clazz createClazzEntity(Submissions submission) {
         Clazz clazz = new Clazz();
         clazz.setClassName(extractClassName(submission.getFilePath()));
         clazz.setfilePath(submission.getFilePath());
-        clazz.setProjectId(submission.getProjectId());
+        clazz.setProjectId(submission.getProject().getProjectId());
         return clazz;
     }
 

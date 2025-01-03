@@ -1,27 +1,22 @@
 package com.nameless.storage_server.service.file;
 
 import com.nameless.storage_server.entity.Project;
-import com.nameless.storage_server.entity.Submissions;
 import com.nameless.storage_server.entity.User;
-import com.nameless.storage_server.repository.UserRepository;
-import com.nameless.storage_server.service.jwt.JwtService;
+import com.nameless.storage_server.facade.AuthenticationFacade;
+import com.nameless.storage_server.service.processor.ZipProcessor;
+import com.nameless.storage_server.service.project.ProjectService;
 import com.nameless.storage_server.service.queue.SubmissionsProducer;
-import com.nameless.storage_server.repository.ProjectRepository;
-import com.nameless.storage_server.repository.SubmissionsRepository;
+import com.nameless.storage_server.service.storage.JavaFileSaver;
+import com.nameless.storage_server.service.submission.SubmissionService;
+import com.nameless.storage_server.service.validator.ZipValidator;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Optional;
-import java.util.zip.ZipEntry;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.ZipInputStream;
-import java.util.logging.Logger;
 
 /**
  * Service class for handling file upload and processing operations.
@@ -30,149 +25,55 @@ import java.util.logging.Logger;
 @Transactional
 public class FileUploadService {
 
-    private static final String STORAGE_DIRECTORY = "uploaded_java_files";
-    private static final Logger logger = Logger.getLogger(FileUploadService.class.getName());
-
-    private final SubmissionsRepository submissionsRepository;
-    private final ProjectRepository projectRepository;
-    private final UserRepository userRepository;
-    private final JwtService jwtService;
+    private final AuthenticationFacade authenticationFacade;
+    private final ZipValidator zipValidator;
+    private final ZipProcessor zipProcessor;
+    private final JavaFileSaver javaFileSaver;
+    private final ProjectService projectService;
+    private final SubmissionService submissionService;
     private final SubmissionsProducer submissionsProducer;
 
     @Autowired
-    public FileUploadService(SubmissionsRepository submissionsRepository,
-                             ProjectRepository projectRepository,
-                             UserRepository userRepository,
-                             JwtService jwtService,
+    public FileUploadService(AuthenticationFacade authenticationFacade,
+                             ZipValidator zipValidator,
+                             ZipProcessor zipProcessor,
+                             JavaFileSaver javaFileSaver,
+                             ProjectService projectService,
+                             SubmissionService submissionService,
                              SubmissionsProducer submissionsProducer) {
-        this.submissionsRepository = submissionsRepository;
-        this.projectRepository = projectRepository;
-        this.userRepository = userRepository;
-        this.jwtService = jwtService;
+        this.authenticationFacade = authenticationFacade;
+        this.zipValidator = zipValidator;
+        this.zipProcessor = zipProcessor;
+        this.javaFileSaver = javaFileSaver;
+        this.projectService = projectService;
+        this.submissionService = submissionService;
         this.submissionsProducer = submissionsProducer;
     }
 
-    /**
-     * Processes an uploaded .zip file, extracting and storing .java files.
-     *
-     * @param file  the uploaded .zip file.
-     * @param token the user's JWT token.
-     * @throws IOException if an I/O error occurs during processing.
-     */
-    public void processZipFileAndStoreJavaFiles(MultipartFile file, String token) throws IOException {
-        logger.info("Processing uploaded zip file: " + file.getOriginalFilename());
-        validateZipFile(file);
+    public void processZipFile(MultipartFile file, String token) throws IOException {
+        zipValidator.validateZipFile(file);
 
-        String username = jwtService.extractUsernameFromAccess(token.substring(7));
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
-
-        createStorageDirectory();
+        User user = authenticationFacade.getUserFromToken(token);
 
         try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
-            processZipEntries(zis, user.getId());
-        } catch (IOException e) {
-            logger.severe("Error processing zip file: " + e.getMessage());
-            throw e;
-        }
-    }
-
-    private void validateZipFile(MultipartFile file) {
-        if (!file.getOriginalFilename().endsWith(".zip")) {
-            logger.warning("Invalid file type: " + file.getOriginalFilename());
-            throw new IllegalArgumentException("Uploaded file must be a .zip file.");
-        }
-    }
-
-    private void createStorageDirectory() throws IOException {
-        Path storagePath = Paths.get(STORAGE_DIRECTORY).toAbsolutePath();
-        if (!Files.exists(storagePath)) {
-            Files.createDirectories(storagePath);
-            logger.info("Created storage directory: " + storagePath);
-        }
-    }
-
-    private void processZipEntries(ZipInputStream zis, Long userId) throws IOException {
-        ZipEntry zipEntry;
-        String projectName = null;
-
-        while ((zipEntry = zis.getNextEntry()) != null) {
-            if (isJavaFile(zipEntry)) {
-                if (projectName == null) {
-                    projectName = extractProjectName(zipEntry.getName());
-                    storeProjectInDatabase(projectName, userId);
+            AtomicReference<Project> projectRef = new AtomicReference<>();
+            zipProcessor.processZipEntries(zis, zipEntry -> {
+                if (zipEntry.isDirectory() && projectRef.get() == null) {
+                    projectRef.set(projectService.createProject(zipEntry.getName(), user));
+                } else if (!zipEntry.isDirectory() && projectRef.get() != null && zipEntry.getName().endsWith(".java")) {
+                    String filePath = null;
+                    try {
+                        filePath = javaFileSaver.saveJavaFile(zis, projectRef.get(), zipEntry.getName());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    submissionService.createSubmission(filePath, projectRef.get());
                 }
+            });
 
-                String filePath = constructFilePath(projectName, zipEntry.getName(), userId);
-                saveJavaFile(zis, filePath);
-                storeFilePathInDatabase(filePath, projectName ,userId);
-            }
-            zis.closeEntry();
-        }
-
-        enqueueProjectForProcessing(projectName ,userId);
-    }
-
-    private boolean isJavaFile(ZipEntry zipEntry) {
-        return !zipEntry.isDirectory() && zipEntry.getName().endsWith(".java");
-    }
-
-    private String extractProjectName(String filePath) {
-        int firstSlashIndex = filePath.indexOf('/');
-        return firstSlashIndex != -1 ? filePath.substring(0, firstSlashIndex) : filePath;
-    }
-
-    private void storeProjectInDatabase(String projectName, Long userId) {
-        Project project = new Project();
-        project.setProjectName(projectName);
-        project.setUserId(userId);
-        projectRepository.save(project);
-        logger.info("Stored project in database: " + projectName);
-    }
-
-    private String constructFilePath(String projectName, String fileName, Long userId) {
-        Optional<Project> project = projectRepository.findTopByProjectNameAndUserIdOrderByCreatedAtDesc(projectName, userId);
-        if(project.isPresent()) {
-            return Paths.get(STORAGE_DIRECTORY, String.valueOf(userId) ,project.get().getProject_id().toString() , fileName).toAbsolutePath().toString();
-
-        }
-        return null;
-    }
-
-    private void saveJavaFile(ZipInputStream zis, String filePath) throws IOException {
-        Path path = Paths.get(filePath);
-        if (!Files.exists(path.getParent())) {
-            Files.createDirectories(path.getParent());
-        }
-
-        try (OutputStream os = Files.newOutputStream(path)) {
-            byte[] buffer = new byte[8192];
-            int bytesRead;
-            while ((bytesRead = zis.read(buffer)) != -1) {
-                os.write(buffer, 0, bytesRead);
+            if (projectRef.get() != null) {
+                submissionsProducer.sendToQueue(projectRef.get().getProjectId());
             }
         }
-        logger.info("Saved Java file: " + filePath);
-    }
-
-    private void storeFilePathInDatabase(String filePath, String projectName, Long userId) {
-        Project project = projectRepository.findTopByProjectNameAndUserIdOrderByCreatedAtDesc(projectName , userId)
-                .orElseThrow(() -> new IllegalArgumentException("Project not found: " + projectName));
-
-        Submissions submission = new Submissions();
-        submission.setFilePath(filePath);
-        submission.setProcessed(false);
-        submission.setProjectId(project.getProject_id());
-        submissionsRepository.save(submission);
-
-        logger.info("Stored file metadata in database: " + filePath);
-    }
-
-    private void enqueueProjectForProcessing(String projectName, Long userId) {
-        Project project = projectRepository.findTopByProjectNameAndUserIdOrderByCreatedAtDesc(projectName , userId)
-                .orElseThrow(() -> new IllegalArgumentException("Project not found for queueing: " + projectName));
-
-        submissionsProducer.sendToQueue(project.getProject_id());
-        logger.info("Enqueued project for processing: " + project.getProject_id());
     }
 }
