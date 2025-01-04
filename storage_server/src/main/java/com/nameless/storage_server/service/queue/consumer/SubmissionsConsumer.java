@@ -25,7 +25,7 @@ public class SubmissionsConsumer {
             logger.info("Received message: " + projectId);
 
             logger.info("Received projectId: " + projectId);
-            submissionProcessor.processSubmissionsByProject(projectId);
+            submissionProcessor.processUnprocessedSubmissions(projectId);
 
         } catch (Exception e) {
             logger.severe("Error processing message: " + e.getMessage());

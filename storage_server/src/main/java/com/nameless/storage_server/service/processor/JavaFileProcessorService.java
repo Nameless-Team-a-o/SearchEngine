@@ -15,7 +15,6 @@ public class JavaFileProcessorService implements FileProcessorService {
 
     private static final Logger logger = Logger.getLogger(JavaFileProcessorService.class.getName());
 
-
     /**
      * Parses Java code into a CompilationUnit.
      *

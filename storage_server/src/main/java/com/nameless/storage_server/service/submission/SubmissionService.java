@@ -26,7 +26,7 @@ public class SubmissionService {
 
         logger.info("Stored file metadata in database: " + filePath);
     }
-    public List<Submissions> getSubmissionsByProjectIdAndProcessedFalse( Long projectId) {
+    public List<Submissions> getUnprocessedSubmissionsByProjectId(Long projectId) {
         return submissionsRepository.findByProject_ProjectIdAndProcessedFalse(projectId);
     }
 
