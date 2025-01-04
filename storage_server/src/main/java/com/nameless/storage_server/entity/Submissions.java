@@ -11,7 +11,7 @@ public class Submissions {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
@@ -21,6 +21,9 @@ public class Submissions {
     public Submissions(String filePath, Project project) {
         this.filePath = filePath;
         this.project = project;
+    }
+
+    public Submissions() {
     }
 
     @PrePersist

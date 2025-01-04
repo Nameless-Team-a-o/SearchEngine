@@ -6,6 +6,7 @@ import com.nameless.storage_server.repository.SubmissionsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 @Service
@@ -21,8 +22,15 @@ public class SubmissionService {
 
     public void createSubmission(String filePath, Project project) {
         Submissions submission = new Submissions(filePath, project);
-        submissionsRepository.save(submission);
+        saveSubmission(submission);
 
         logger.info("Stored file metadata in database: " + filePath);
+    }
+    public List<Submissions> getSubmissionsByProjectIdAndProcessedFalse( Long projectId) {
+        return submissionsRepository.findByProject_ProjectIdAndProcessedFalse(projectId);
+    }
+
+    public void saveSubmission(Submissions submission) {
+        submissionsRepository.save(submission);
     }
 }

@@ -23,7 +23,7 @@ public class UserService {
 
         User newUser = new User();
         newUser.setUsername(username);
-        userRepository.save(newUser);
+        saveUser(newUser);
 
         try {
             userRepository.save(newUser);
@@ -35,5 +35,9 @@ public class UserService {
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+    }
+
+    private void saveUser(User user) {
+        userRepository.save(user);
     }
 }

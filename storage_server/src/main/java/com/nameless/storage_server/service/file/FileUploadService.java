@@ -5,7 +5,7 @@ import com.nameless.storage_server.entity.User;
 import com.nameless.storage_server.facade.AuthenticationFacade;
 import com.nameless.storage_server.service.processor.ZipProcessor;
 import com.nameless.storage_server.service.project.ProjectService;
-import com.nameless.storage_server.service.queue.SubmissionsProducer;
+import com.nameless.storage_server.service.queue.producer.SubmissionsProducer;
 import com.nameless.storage_server.service.storage.JavaFileSaver;
 import com.nameless.storage_server.service.submission.SubmissionService;
 import com.nameless.storage_server.service.validator.ZipValidator;
@@ -59,7 +59,7 @@ public class FileUploadService {
             AtomicReference<Project> projectRef = new AtomicReference<>();
             zipProcessor.processZipEntries(zis, zipEntry -> {
                 if (zipEntry.isDirectory() && projectRef.get() == null) {
-                    projectRef.set(projectService.createProject(zipEntry.getName(), user));
+                    projectRef.set(projectService.createProject(projectService.extractProjectName(zipEntry.getName()), user));
                 } else if (!zipEntry.isDirectory() && projectRef.get() != null && zipEntry.getName().endsWith(".java")) {
                     String filePath = null;
                     try {

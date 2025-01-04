@@ -3,6 +3,8 @@ package com.nameless.storage_server.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Entity
@@ -12,7 +14,7 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long projectId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -21,9 +23,19 @@ public class Project {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Submissions> submissions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Clazz> classes = new ArrayList<>();
+
+
     public Project(String projectName, User user) {
         this.projectName = projectName;
         this.user = user;
+    }
+
+    public Project() {
     }
 
     @PrePersist
@@ -39,12 +51,20 @@ public class Project {
         this.projectId = projectId;
     }
 
-    public User getUser() {
-        return user;
+    public List<Clazz> getClasses() {
+        return classes;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setClasses(List<Clazz> classes) {
+        this.classes = classes;
+    }
+
+    public List<Submissions> getSubmissions() {
+        return submissions;
+    }
+
+    public void setSubmissions(List<Submissions> submissions) {
+        this.submissions = submissions;
     }
 
     public String getProjectName() {
@@ -55,6 +75,14 @@ public class Project {
         this.projectName = projectName;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -63,4 +91,5 @@ public class Project {
         this.createdAt = createdAt;
     }
 }
+
 

@@ -3,7 +3,9 @@ package com.nameless.storage_server.facade;
 import com.nameless.storage_server.entity.User;
 import com.nameless.storage_server.service.jwt.JwtService;
 import com.nameless.storage_server.service.user.UserService;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AuthenticationFacade {
     private final JwtService jwtService;
     private final UserService userService;

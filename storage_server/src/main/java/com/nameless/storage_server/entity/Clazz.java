@@ -9,24 +9,28 @@ public class Clazz {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String className;
     private String filePath;
-    private Long projectId;
 
-    public Long getProjectId() {
-        return projectId;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
 
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
-    }
+    @OneToMany(mappedBy = "clazz", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Token> tokens = new ArrayList<>();
 
-    public void setfilePath(String packageName) {
-        this.filePath = packageName;
-    }
+    @OneToMany(mappedBy = "clazz", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NormalizeToken> normalizeTokens = new ArrayList<>();
 
-    public void setClassName(String className) {
+    public Clazz(String className, String filePath, Project project) {
         this.className = className;
+        this.filePath = filePath;
+        this.project = project;
+    }
+
+    public Clazz() {
+
     }
 
     public Long getId() {
@@ -37,8 +41,20 @@ public class Clazz {
         this.id = id;
     }
 
-    public String getClassName() {
-        return className;
+    public List<Token> getTokens() {
+        return tokens;
+    }
+
+    public void setTokens(List<Token> tokens) {
+        this.tokens = tokens;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     public String getFilePath() {
@@ -47,5 +63,21 @@ public class Clazz {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
+
+    public List<NormalizeToken> getNormalizeTokens() {
+        return normalizeTokens;
+    }
+
+    public void setNormalizeTokens(List<NormalizeToken> normalizeTokens) {
+        this.normalizeTokens = normalizeTokens;
     }
 }

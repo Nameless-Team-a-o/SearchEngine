@@ -8,14 +8,15 @@ import java.util.List;
 
 @Repository
 public interface SubmissionsRepository extends JpaRepository<Submissions, Long> {
-    List<Submissions> findByProjectIdAndProcessedFalse(Long projectId);
 
     /**
      * Finds all unprocessed submissions by project name.
      *
-     * @param projectName the project name.
+     * @param projectId the project name.
      * @return a list of unprocessed submissions.
      */
+    List<Submissions> findByProject_ProjectIdAndProcessedFalse(Long projectId);
+
 
 
 }

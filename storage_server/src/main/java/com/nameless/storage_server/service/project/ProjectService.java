@@ -27,4 +27,10 @@ public class ProjectService {
 
         return savedProject;
     }
+
+    public String extractProjectName(String filePath) {
+        int firstSlashIndex = filePath.indexOf('/');
+        return firstSlashIndex != -1 ? filePath.substring(0, firstSlashIndex) : filePath;
+    }
+
 }
