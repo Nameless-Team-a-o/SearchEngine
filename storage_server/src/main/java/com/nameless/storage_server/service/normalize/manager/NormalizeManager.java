@@ -18,18 +18,15 @@ import java.util.List;
 @Service
 public class NormalizeManager {
 
-    private final NormalizeTokenRepository normalizeTokenRepository;
     private final NormalizationStrategy lemmatizationOnlyStrategy;
     private final NormalizationStrategy stemmingOnlyStrategy;
     private final NormalizationStrategy lemmatizationAndStemmingStrategy;
     private final NormalizeTokenService normalizeTokenService;
 
     @Autowired
-    public NormalizeManager(NormalizeTokenRepository normalizeTokenRepository,
-                            LemmatizationStep lemmatizationStep,
+    public NormalizeManager(LemmatizationStep lemmatizationStep,
                             StemmingStep stemmingStep,
                             NormalizeTokenService normalizeTokenService) {
-        this.normalizeTokenRepository = normalizeTokenRepository;
         this.lemmatizationOnlyStrategy = new LemmatizationOnlyStrategy(lemmatizationStep);
         this.stemmingOnlyStrategy = new StemmingOnlyStrategy(stemmingStep);
         this.lemmatizationAndStemmingStrategy = new LemmatizationAndStemmingStrategy(lemmatizationStep);
@@ -42,8 +39,8 @@ public class NormalizeManager {
         List<NormalizeToken> normalizedTokens = tokens.stream()
                 .map(token -> normalizeToken(token, strategy))
                 .toList();
+        normalizeTokenService.saveAllNormalizeToken(normalizedTokens);
 
-        normalizeTokenRepository.saveAll(normalizedTokens);
     }
 
     private NormalizationStrategy chooseStrategy(boolean useStemming, boolean useLemmatization) {

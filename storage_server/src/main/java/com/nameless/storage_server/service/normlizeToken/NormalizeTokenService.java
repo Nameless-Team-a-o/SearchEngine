@@ -6,6 +6,8 @@ import com.nameless.storage_server.entity.TokenType;
 import com.nameless.storage_server.repository.NormalizeTokenRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class NormalizeTokenService {
     private final NormalizeTokenRepository normalizeTokenRepository;
@@ -22,5 +24,7 @@ public class NormalizeTokenService {
         return normalizeTokenRepository.save(normalizeToken);
     }
 
-
+    public void saveAllNormalizeToken(List<NormalizeToken> normalizedTokens) {
+        normalizeTokenRepository.saveAll(normalizedTokens);
+    }
 }
