@@ -6,10 +6,12 @@ import java.util.List;
 
 @Component
 public class TokenSplitter {
-    private SplittingHandler firstHandler;
+    private final SplittingHandler firstHandler;
 
-    public void setFirstHandler(SplittingHandler firstHandler) {
-        this.firstHandler = firstHandler;
+    public TokenSplitter(SnakeCaseHandler snakeCaseHandler, CamelCaseHandler camelCaseHandler) {
+        // Configure the chain of responsibility
+        snakeCaseHandler.setNext(camelCaseHandler);
+        this.firstHandler = snakeCaseHandler;
     }
 
     public List<String> splitWords(String token) {

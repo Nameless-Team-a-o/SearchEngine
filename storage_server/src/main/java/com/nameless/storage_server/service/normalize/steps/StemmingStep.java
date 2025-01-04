@@ -1,7 +1,6 @@
 package com.nameless.storage_server.service.normalize.steps;
 
-import com.nameless.storage_server.service.normalize.splitter.CamelCaseHandler;
-import com.nameless.storage_server.service.normalize.splitter.SnakeCaseHandler;
+import com.nameless.storage_server.service.normalize.splitter.TokenSplitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.tartarus.snowball.ext.EnglishStemmer;
@@ -11,27 +10,23 @@ import java.util.List;
 
 @Service
 public class StemmingStep implements NormalizationStep {
-    private final SnakeCaseHandler snakeCaseHandler;
-    private final CamelCaseHandler camelCaseHandler;
+    private final TokenSplitter tokenSplitter;
 
     @Autowired
-    public StemmingStep( SnakeCaseHandler snakeCaseHandler,
-                         CamelCaseHandler camelCaseHandler) {
-        this.snakeCaseHandler = snakeCaseHandler;
-        this.camelCaseHandler = camelCaseHandler;
-        snakeCaseHandler.setNext(camelCaseHandler);
-
+    public StemmingStep(TokenSplitter tokenSplitter) {
+        this.tokenSplitter = tokenSplitter;
     }
+
     @Override
     public String normalize(String token, boolean both) {
         // Step 1: Split the token into words using the TokenSplitter class
-        List<String> words = snakeCaseHandler.handle(token);
+        List<String> words = tokenSplitter.splitWords(token);
 
-
-        return String.join("", stemmWords(words));
+        // Step 2: Apply stemming to the words
+        return String.join("", stemWords(words));
     }
 
-    public static List<String> stemmWords(List<String> words) {
+    public static List<String> stemWords(List<String> words) {
         List<String> stemmedWords = new ArrayList<>();
         EnglishStemmer stemmer = new EnglishStemmer();
         for (String word : words) {
@@ -43,6 +38,5 @@ public class StemmingStep implements NormalizationStep {
             }
         }
         return stemmedWords;
-
     }
 }

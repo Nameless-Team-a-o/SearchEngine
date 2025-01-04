@@ -1,7 +1,6 @@
 package com.nameless.storage_server.service.normalize.steps;
 
-import com.nameless.storage_server.service.normalize.splitter.CamelCaseHandler;
-import com.nameless.storage_server.service.normalize.splitter.SnakeCaseHandler;
+import com.nameless.storage_server.service.normalize.splitter.TokenSplitter;
 import edu.stanford.nlp.pipeline.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,28 +14,21 @@ import java.util.Properties;
 public class LemmatizationStep implements NormalizationStep {
 
     private final StanfordCoreNLP lemmatizer;
-    private final SnakeCaseHandler snakeCaseHandler;
-    private final CamelCaseHandler camelCaseHandler;
+    private final TokenSplitter tokenSplitter;
 
-    public LemmatizationStep(@Value("${nlp.model.path}") String modelPath,
-                             SnakeCaseHandler snakeCaseHandler,
-                             CamelCaseHandler camelCaseHandler) {
+    public LemmatizationStep(@Value("${nlp.model.path}") String modelPath, TokenSplitter tokenSplitter) {
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize,ssplit,pos,lemma");
         props.setProperty("pos.model", Paths.get(modelPath).toAbsolutePath().toString());
 
         lemmatizer = new StanfordCoreNLP(props);
-        this.snakeCaseHandler = snakeCaseHandler;
-        this.camelCaseHandler = camelCaseHandler;
-
-        // Chaining handlers to process snake case -> camel case
-        snakeCaseHandler.setNext(camelCaseHandler);
+        this.tokenSplitter = tokenSplitter;
     }
 
     @Override
     public String normalize(String token, boolean both) {
-        // Step 1: Split the token into words using the handlers chain
-        List<String> words = snakeCaseHandler.handle(token);
+        // Step 1: Use TokenSplitter to split the token
+        List<String> words = tokenSplitter.splitWords(token);
 
         // Step 2: Lemmatize each word
         List<String> lemmatizedWords = new ArrayList<>();
@@ -45,7 +37,7 @@ public class LemmatizationStep implements NormalizationStep {
         }
 
         if (both) {
-            return String.join("", StemmingStep.stemmWords(lemmatizedWords));
+            return String.join("", StemmingStep.stemWords(lemmatizedWords));
         } else {
             return String.join("", lemmatizedWords);
         }
