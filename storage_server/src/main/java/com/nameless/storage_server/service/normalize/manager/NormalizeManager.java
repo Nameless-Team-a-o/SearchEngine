@@ -52,7 +52,7 @@ public class NormalizeManager {
             normalizeTokenService.processAndStoreToken(token, normalizedWords);
         }
     }
-
+    //TODO:REPLACE IT
     public NormalizationStrategy chooseStrategy(boolean useStemming, boolean useLemmatization) {
         if (useLemmatization && useStemming) {
             return lemmatizationAndStemmingStrategy;

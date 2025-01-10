@@ -62,6 +62,8 @@ public class SearchFacade extends AbstractOperationFacade<SearchRequestDto, List
         );
 
         // Retrieve and process tokens
+
+        //TODO: make interface
         List<?> tokens = retrievalStrategy.retrieveTokens(
                 request,
                 normalizedQuery,

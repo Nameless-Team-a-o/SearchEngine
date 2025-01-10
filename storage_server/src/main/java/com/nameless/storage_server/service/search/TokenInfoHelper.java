@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 
 public class TokenInfoHelper {
     private static final Logger logger = LoggerFactory.getLogger(TokenInfoHelper.class);
-
+    //TODO: make interface
     public static SearchResponseDTO generateTokenInfo(Object token) {
         Clazz clazz = token instanceof Token ? ((Token) token).getClazz() : ((NormalizeToken) token).getClazz();
         TokenType type = token instanceof Token ? ((Token) token).getType() : ((NormalizeToken) token).getType();

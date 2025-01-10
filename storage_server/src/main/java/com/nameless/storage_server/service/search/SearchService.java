@@ -43,7 +43,7 @@ public class SearchService {
 
     public ResponseEntity<?> searchClass(Long id, String token) {
         validateToken(token);
-       Clazz clazz = clazzService.findClazzById(id);
+        Clazz clazz = clazzService.findClazzById(id);
 
         try {
             String fileContent = fileReader.readFile(clazz.getFilePath());
