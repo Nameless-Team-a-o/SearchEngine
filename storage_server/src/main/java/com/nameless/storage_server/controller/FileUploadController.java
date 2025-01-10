@@ -1,5 +1,7 @@
 package com.nameless.storage_server.controller;
 
+import com.nameless.storage_server.exception.AuthenticationException;
+import com.nameless.storage_server.exception.FileProcessingException;
 import com.nameless.storage_server.service.file.FileUploadService;
 import com.nameless.storage_server.service.jwt.JwtService;
 import org.springframework.http.*;
@@ -11,7 +13,6 @@ import java.io.IOException;
 
 @RestController
 public class FileUploadController {
-
     private final JwtService jwtService;
     private final FileUploadService fileUploadService;
 
@@ -23,24 +24,13 @@ public class FileUploadController {
     }
 
     @PostMapping("/upload/zip")
-    public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file, @RequestHeader("Authorization") String token) {
-        try {
-            // TODO: Replace with spring security
-            boolean isTokenValid =  jwtService.validateToken(token);
-            if (!isTokenValid) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token.");
-            }
-
-            fileUploadService.processZipFile(file, token);
-
-            return ResponseEntity.ok("ZIP file processed successfully. Java files have been stored.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (IOException e) {
-            return ResponseEntity.status(500).body("Error processing the .zip file");
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("An unexpected error occurred");
+    public ResponseEntity<String> upload(@RequestParam("file") MultipartFile file,
+                                         @RequestHeader("Authorization") String token) {
+        if (!jwtService.validateToken(token)) {
+            throw new AuthenticationException("Invalid token.");
         }
-    }
 
+        fileUploadService.processZipFile(file, token);
+        return ResponseEntity.ok("ZIP file processed successfully. Java files have been stored.");
+    }
 }

@@ -2,6 +2,7 @@ package com.nameless.storage_server.service.project;
 
 import com.nameless.storage_server.entity.Project;
 import com.nameless.storage_server.entity.User;
+import com.nameless.storage_server.exception.ProjectCreationException;
 import com.nameless.storage_server.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,11 +22,14 @@ public class ProjectService {
     }
 
     public Project createProject(String projectName, User user) {
-        Project project = new Project(projectName, user);
-        Project savedProject = projectRepository.save(project);
-        logger.info("Stored project in database: " + projectName);
-
-        return savedProject;
+        try {
+            Project project = new Project(projectName, user);
+            Project savedProject = projectRepository.save(project);
+            logger.info("Stored project in database: " + projectName);
+            return savedProject;
+        } catch (Exception e) {
+            throw new ProjectCreationException("Failed to create project: " + projectName);
+        }
     }
 
     public String extractProjectName(String filePath) {

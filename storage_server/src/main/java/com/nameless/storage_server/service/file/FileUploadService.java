@@ -2,6 +2,7 @@ package com.nameless.storage_server.service.file;
 
 import com.nameless.storage_server.entity.Project;
 import com.nameless.storage_server.entity.User;
+import com.nameless.storage_server.exception.FileProcessingException;
 import com.nameless.storage_server.facade.AuthenticationFacade;
 import com.nameless.storage_server.service.processor.ZipProcessor;
 import com.nameless.storage_server.service.project.ProjectService;
@@ -50,23 +51,20 @@ public class FileUploadService {
         this.submissionsProducer = submissionsProducer;
     }
 
-    public void processZipFile(MultipartFile file, String token) throws IOException {
-        zipValidator.validateZipFile(file);
-
+    public void processZipFile(MultipartFile file, String token) {
         User user = authenticationFacade.getUserFromToken(token);
+        zipValidator.validateZipFile(file);
 
         try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
             AtomicReference<Project> projectRef = new AtomicReference<>();
+
             zipProcessor.processZipEntries(zis, zipEntry -> {
                 if (zipEntry.isDirectory() && projectRef.get() == null) {
-                    projectRef.set(projectService.createProject(projectService.extractProjectName(zipEntry.getName()), user));
-                } else if (!zipEntry.isDirectory() && projectRef.get() != null && zipEntry.getName().endsWith(".java")) {
-                    String filePath = null;
-                    try {
-                        filePath = javaFileSaver.saveJavaFile(zis, projectRef.get(), zipEntry.getName());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                    projectRef.set(projectService.createProject(
+                            projectService.extractProjectName(zipEntry.getName()), user));
+                } else if (!zipEntry.isDirectory() && projectRef.get() != null
+                        && zipEntry.getName().endsWith(".java")) {
+                    String filePath = javaFileSaver.saveJavaFile(zis, projectRef.get(), zipEntry.getName());
                     submissionService.createSubmission(filePath, projectRef.get());
                 }
             });
@@ -74,6 +72,8 @@ public class FileUploadService {
             if (projectRef.get() != null) {
                 submissionsProducer.sendToQueue(projectRef.get().getProjectId());
             }
+        } catch (IOException e) {
+            throw new FileProcessingException("Error reading zip file", 500);
         }
     }
 }

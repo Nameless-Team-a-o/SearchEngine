@@ -10,23 +10,13 @@ import java.util.List;
 
 @Service
 public class StemmingStep implements NormalizationStep {
-    private final TokenSplitter tokenSplitter;
-
-    @Autowired
-    public StemmingStep(TokenSplitter tokenSplitter) {
-        this.tokenSplitter = tokenSplitter;
-    }
-
     @Override
-    public String normalize(String token, boolean both) {
-        // Step 1: Split the token into words using the TokenSplitter class
-        List<String> words = tokenSplitter.splitWords(token);
-
+    public List <String> normalize(List <String> words, boolean both) {
         // Step 2: Apply stemming to the words
-        return String.join("", stemWords(words));
+        return  stemWords(words);
     }
 
-    public static List<String> stemWords(List<String> words) {
+    public  List<String> stemWords(List<String> words) {
         List<String> stemmedWords = new ArrayList<>();
         EnglishStemmer stemmer = new EnglishStemmer();
         for (String word : words) {
@@ -37,6 +27,7 @@ public class StemmingStep implements NormalizationStep {
                 stemmedWords.add(word); // If stemming fails, use the original word
             }
         }
+
         return stemmedWords;
     }
 }

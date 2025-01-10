@@ -6,6 +6,8 @@ import com.nameless.storage_server.entity.TokenType;
 import com.nameless.storage_server.repository.TokenRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class TokenService {
     private final TokenRepository tokenRepository;
@@ -20,4 +22,12 @@ public class TokenService {
     public Token saveToken(Token token) {
         return tokenRepository.save(token);
     }
+
+    public List<Token> findTop10Token(String searchTerm) {
+        return tokenRepository.findTop10ByToken(searchTerm);
+    }
+    public List<Token> findTop10ByTokenAndType(String token, TokenType type){
+        return tokenRepository.findTop10ByTokenAndType(token, type);
+    }
+
 }

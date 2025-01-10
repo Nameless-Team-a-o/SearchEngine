@@ -3,6 +3,7 @@ package com.nameless.storage_server.service.normalize.manager;
 import com.nameless.storage_server.entity.NormalizeToken;
 import com.nameless.storage_server.entity.Token;
 import com.nameless.storage_server.repository.NormalizeTokenRepository;
+import com.nameless.storage_server.service.normalize.splitter.TokenSplitter;
 import com.nameless.storage_server.service.normalize.steps.LemmatizationStep;
 import com.nameless.storage_server.service.normalize.steps.StemmingStep;
 import com.nameless.storage_server.service.normalize.strategy.LemmatizationAndStemmingStrategy;
@@ -13,37 +14,46 @@ import com.nameless.storage_server.service.normlizeToken.NormalizeTokenService;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
 public class NormalizeManager {
 
-    private final NormalizationStrategy lemmatizationOnlyStrategy;
-    private final NormalizationStrategy stemmingOnlyStrategy;
-    private final NormalizationStrategy lemmatizationAndStemmingStrategy;
+    private final TokenSplitter tokenSplitter;
     private final NormalizeTokenService normalizeTokenService;
+    private final NormalizationStrategy lemmatizationOnlyStrategy;
+    private final NormalizationStrategy lemmatizationAndStemmingStrategy;
+    private final NormalizationStrategy stemmingOnlyStrategy;
 
     @Autowired
-    public NormalizeManager(LemmatizationStep lemmatizationStep,
+    public NormalizeManager(TokenSplitter tokenSplitter,
+                            NormalizeTokenService normalizeTokenService,
                             StemmingStep stemmingStep,
-                            NormalizeTokenService normalizeTokenService) {
-        this.lemmatizationOnlyStrategy = new LemmatizationOnlyStrategy(lemmatizationStep);
-        this.stemmingOnlyStrategy = new StemmingOnlyStrategy(stemmingStep);
-        this.lemmatizationAndStemmingStrategy = new LemmatizationAndStemmingStrategy(lemmatizationStep);
+                            LemmatizationStep lemmatizationStep) {
+        this.tokenSplitter = tokenSplitter;
         this.normalizeTokenService = normalizeTokenService;
+        this.stemmingOnlyStrategy = new StemmingOnlyStrategy(stemmingStep);
+        this.lemmatizationOnlyStrategy = new LemmatizationOnlyStrategy(lemmatizationStep);
+        this.lemmatizationAndStemmingStrategy = new LemmatizationAndStemmingStrategy(lemmatizationStep);
     }
 
     public void normalizeTokens(List<Token> tokens, boolean useStemming, boolean useLemmatization) {
         NormalizationStrategy strategy = chooseStrategy(useStemming, useLemmatization);
 
-        List<NormalizeToken> normalizedTokens = tokens.stream()
-                .map(token -> normalizeToken(token, strategy))
-                .toList();
-        normalizeTokenService.saveAllNormalizeToken(normalizedTokens);
+        for (Token token : tokens) {
+            // Split the token
+            List<String> words = tokenSplitter.splitToken(token.getToken());
 
+            // Apply normalization strategy
+            List<String> normalizedWords = strategy.normalize(words);
+
+            // Store the results
+            normalizeTokenService.processAndStoreToken(token, normalizedWords);
+        }
     }
 
-    private NormalizationStrategy chooseStrategy(boolean useStemming, boolean useLemmatization) {
+    public NormalizationStrategy chooseStrategy(boolean useStemming, boolean useLemmatization) {
         if (useLemmatization && useStemming) {
             return lemmatizationAndStemmingStrategy;
         }
@@ -53,16 +63,7 @@ public class NormalizeManager {
         if (useStemming) {
             return stemmingOnlyStrategy;
         }
-        return token -> token; // No normalization applied
-    }
-
-    private NormalizeToken normalizeToken(Token token, NormalizationStrategy strategy) {
-        String normalizedToken = strategy.normalize(token.getToken());
-        return normalizeTokenService.createNormalizeToken(
-                normalizedToken.toLowerCase(),
-                token.getType(),
-                token.getLineNumber(),
-                token.getClazz());
+        return tokenWords -> tokenWords; // No normalization applied
     }
 
 }

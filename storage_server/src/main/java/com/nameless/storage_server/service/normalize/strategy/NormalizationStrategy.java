@@ -1,5 +1,7 @@
 package com.nameless.storage_server.service.normalize.strategy;
 
+import java.util.List;
+
 public interface NormalizationStrategy {
-    String normalize(String token);
+    List<String> normalize(List <String> tokenWords);
 }

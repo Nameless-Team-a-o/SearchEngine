@@ -1,6 +1,7 @@
 package com.nameless.storage_server.service.normalize.steps;
 
 import com.nameless.storage_server.service.normalize.splitter.TokenSplitter;
+import com.nameless.storage_server.service.normlizeToken.NormalizeTokenService;
 import edu.stanford.nlp.pipeline.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -14,32 +15,30 @@ import java.util.Properties;
 public class LemmatizationStep implements NormalizationStep {
 
     private final StanfordCoreNLP lemmatizer;
-    private final TokenSplitter tokenSplitter;
+    private final StemmingStep stemmingStep;
 
-    public LemmatizationStep(@Value("${nlp.model.path}") String modelPath, TokenSplitter tokenSplitter) {
+    public LemmatizationStep(@Value("${nlp.model.path}") String modelPath,
+                             StemmingStep stemmingStep) {
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize,ssplit,pos,lemma");
         props.setProperty("pos.model", Paths.get(modelPath).toAbsolutePath().toString());
 
         lemmatizer = new StanfordCoreNLP(props);
-        this.tokenSplitter = tokenSplitter;
+        this.stemmingStep = stemmingStep;
     }
 
     @Override
-    public String normalize(String token, boolean both) {
-        // Step 1: Use TokenSplitter to split the token
-        List<String> words = tokenSplitter.splitWords(token);
-
-        // Step 2: Lemmatize each word
+    public List<String> normalize(List <String> words, boolean both) {
+        // Step 1: Lemmatize each word
         List<String> lemmatizedWords = new ArrayList<>();
         for (String word : words) {
             lemmatizedWords.add(lemmatizeWord(word));
         }
 
         if (both) {
-            return String.join("", StemmingStep.stemWords(lemmatizedWords));
+            return  stemmingStep.stemWords(lemmatizedWords) ;
         } else {
-            return String.join("", lemmatizedWords);
+            return  lemmatizedWords;
         }
     }
 

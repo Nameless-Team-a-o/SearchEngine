@@ -1,4 +1,5 @@
 package com.nameless.storage_server.service.queue.producer;
+import com.nameless.storage_server.exception.QueueException;
 import com.nameless.storage_server.service.file.FileUploadService;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,8 @@ public class SubmissionsProducer {
             rabbitTemplate.convertAndSend("SubmissionsExchange", "SubmissionsRoutingKey", projectId);
             logger.info("Sent " + projectId + " to queue");
         } catch (Exception e) {
-            logger.severe("Error sending message: " + e.getMessage());
-            throw new RuntimeException("Error sending message", e);
+            throw new QueueException("Failed to send project to queue: " + projectId);
         }
     }
+
 }

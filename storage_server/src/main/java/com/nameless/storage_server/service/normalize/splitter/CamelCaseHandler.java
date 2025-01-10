@@ -1,10 +1,11 @@
 package com.nameless.storage_server.service.normalize.splitter;
 
-
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+
 @Component
 public class CamelCaseHandler implements SplittingHandler {
     private SplittingHandler next;
@@ -17,24 +18,18 @@ public class CamelCaseHandler implements SplittingHandler {
     @Override
     public List<String> handle(String token) {
         List<String> result = new ArrayList<>();
-        StringBuilder word = new StringBuilder();
 
-        for (char c : token.toCharArray()) {
-            if (Character.isUpperCase(c)) {
-                if (!word.isEmpty()) {
-                    result.add(word.toString().toLowerCase());
-                }
-                word = new StringBuilder().append(c);
-            } else {
-                word.append(c);
-            }
+        Pattern pattern = Pattern.compile("(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])");
+        String[] words = pattern.split(token);
+
+        for (String word : words) {
+            result.add(word.toLowerCase());
         }
-        if (!word.isEmpty()) {
-            result.add(word.toString().toLowerCase());
-        }
+
         if (next != null) {
-            result.addAll(next.handle(String.join("", result)));
+            result.addAll(next.handle(String.join(" ", result)));
         }
+
         return result;
     }
 }

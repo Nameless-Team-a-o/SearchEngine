@@ -1,8 +1,15 @@
 package com.nameless.storage_server.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_normalize_token", columnList = "token"),
+        @Index(name = "idx_normalize_type", columnList = "type")
+})
 public class NormalizeToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,6 +26,8 @@ public class NormalizeToken {
     @JoinColumn(name = "class_id", nullable = false)
     private Clazz clazz;
 
+    @CreationTimestamp
+    private LocalDateTime createdDate;
 
     public NormalizeToken(String token, TokenType type, Long lineNumber, Clazz clazz) {
         this.token = token;
@@ -27,9 +36,7 @@ public class NormalizeToken {
         this.clazz = clazz;
     }
 
-    public NormalizeToken() {
-
-    }
+    public NormalizeToken() {}
 
     public Long getId() {
         return id;
@@ -37,6 +44,14 @@ public class NormalizeToken {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
     }
 
     public Clazz getClazz() {

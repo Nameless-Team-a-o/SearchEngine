@@ -1,9 +1,12 @@
 package com.nameless.storage_server.service.normalize.strategy;
 
+import com.nameless.storage_server.entity.Token;
 import com.nameless.storage_server.service.normalize.steps.NormalizationStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class LemmatizationOnlyStrategy implements NormalizationStrategy {
@@ -15,7 +18,9 @@ public class LemmatizationOnlyStrategy implements NormalizationStrategy {
     }
 
     @Override
-    public String normalize(String token) {
-        return lemmatization.normalize(token, false);
+    public List<String> normalize(List <String> tokenWords) {
+        return lemmatization.normalize(tokenWords, false);
     }
+
+
 }

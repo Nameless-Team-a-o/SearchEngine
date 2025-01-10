@@ -5,6 +5,10 @@ import com.nameless.storage_server.entity.Project;
 import com.nameless.storage_server.repository.ClazzRepository;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Path;
+import java.util.IllformedLocaleException;
+import java.util.Optional;
+
 @Service
 public class ClazzService {
     private final ClazzRepository clazzRepository;
@@ -21,4 +25,9 @@ public class ClazzService {
         return clazzRepository.save(clazz);
     }
 
+    public Clazz findClazzById(Long id) {
+        Clazz clazz = clazzRepository.findById(id).orElseThrow(() -> new RuntimeException("Class not found"));
+
+        return clazz;
+    }
 }
