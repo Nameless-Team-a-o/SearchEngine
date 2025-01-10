@@ -1,39 +1,42 @@
 package com.nameless.storage_server.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_normalize_token", columnList = "token"),
+        @Index(name = "idx_normalize_type", columnList = "type")
+})
 public class NormalizeToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String token;
 
-    // Using Enum for type safety
     @Enumerated(EnumType.STRING)
     private TokenType type;
 
     private Long lineNumber;
 
-    private Long classID;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id", nullable = false)
+    private Clazz clazz;
 
-    public void setToken(String token) {
+    @CreationTimestamp
+    private LocalDateTime createdDate;
+
+    public NormalizeToken(String token, TokenType type, Long lineNumber, Clazz clazz) {
         this.token = token;
+        this.type = type;
+        this.lineNumber = lineNumber;
+        this.clazz = clazz;
     }
 
-    public TokenType getType() {
-        return type;
-    }
-
-    public Long getLineNumber() {
-        return lineNumber;
-    }
-
-
-
-    public String getToken() {
-        return token;
-    }
+    public NormalizeToken() {}
 
     public Long getId() {
         return id;
@@ -43,19 +46,43 @@ public class NormalizeToken {
         this.id = id;
     }
 
-    public void setType(TokenType type) {
-        this.type = type;
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public Clazz getClazz() {
+        return clazz;
+    }
+
+    public void setClazz(Clazz clazz) {
+        this.clazz = clazz;
+    }
+
+    public Long getLineNumber() {
+        return lineNumber;
     }
 
     public void setLineNumber(Long lineNumber) {
         this.lineNumber = lineNumber;
     }
 
-    public Long getClassID() {
-        return classID;
+    public TokenType getType() {
+        return type;
     }
 
-    public void setClassID(Long classID) {
-        this.classID = classID;
+    public void setType(TokenType type) {
+        this.type = type;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }

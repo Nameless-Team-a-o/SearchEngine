@@ -1,6 +1,7 @@
 package com.nameless.storage_server.service.normalize.steps;
 
-import com.nameless.storage_server.service.normalize.TokenSplitter;
+import com.nameless.storage_server.service.normalize.splitter.TokenSplitter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.tartarus.snowball.ext.EnglishStemmer;
 
@@ -9,17 +10,13 @@ import java.util.List;
 
 @Service
 public class StemmingStep implements NormalizationStep {
-
     @Override
-    public String normalize(String token, boolean both) {
-        // Step 1: Split the token into words using the TokenSplitter class
-        List<String> words = TokenSplitter.splitWords(token);
-
-
-        return String.join("", stemmWords(words));
+    public List <String> normalize(List <String> words, boolean both) {
+        // Step 2: Apply stemming to the words
+        return  stemWords(words);
     }
 
-    public static List<String> stemmWords(List<String> words) {
+    public  List<String> stemWords(List<String> words) {
         List<String> stemmedWords = new ArrayList<>();
         EnglishStemmer stemmer = new EnglishStemmer();
         for (String word : words) {
@@ -30,7 +27,7 @@ public class StemmingStep implements NormalizationStep {
                 stemmedWords.add(word); // If stemming fails, use the original word
             }
         }
-        return stemmedWords;
 
+        return stemmedWords;
     }
 }

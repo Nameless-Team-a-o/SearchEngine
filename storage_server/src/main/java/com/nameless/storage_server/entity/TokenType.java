@@ -6,4 +6,5 @@ public enum TokenType {
     METHOD,
     ATTRIBUTE,
     DATATYPE,
+    ALL;
 }
