@@ -2,9 +2,10 @@ package com.nameless.storage_server.service.search;
 
 import com.nameless.storage_server.dto.SearchResponseDTO;
 import com.nameless.storage_server.entity.Clazz;
-import com.nameless.storage_server.entity.NormalizeToken;
-import com.nameless.storage_server.entity.Token;
+import com.nameless.storage_server.entity.token.NormalizedToken;
+import com.nameless.storage_server.entity.token.OriginalToken;
 import com.nameless.storage_server.entity.TokenType;
+import com.nameless.storage_server.entity.token.Token;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,11 +16,11 @@ import java.util.stream.Stream;
 
 public class TokenInfoHelper {
     private static final Logger logger = LoggerFactory.getLogger(TokenInfoHelper.class);
-    //TODO: make interface
-    public static SearchResponseDTO generateTokenInfo(Object token) {
-        Clazz clazz = token instanceof Token ? ((Token) token).getClazz() : ((NormalizeToken) token).getClazz();
-        TokenType type = token instanceof Token ? ((Token) token).getType() : ((NormalizeToken) token).getType();
-        Long lineNumber = token instanceof Token ? ((Token) token).getLineNumber() : ((NormalizeToken) token).getLineNumber();
+    //TODO: make interface - Check
+    public static SearchResponseDTO generateTokenInfo(Token token) {
+        Clazz clazz = token.getClazz();
+        TokenType type = token.getType();
+        Long lineNumber = token.getLineNumber();
 
         String classId = String.valueOf(clazz.getId());
         String className = clazz.getClassName();

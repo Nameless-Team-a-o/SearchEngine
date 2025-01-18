@@ -3,7 +3,7 @@ package com.nameless.storage_server.service.extractors;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.nameless.storage_server.entity.Clazz;
-import com.nameless.storage_server.entity.Token;
+import com.nameless.storage_server.entity.token.OriginalToken;
 import com.nameless.storage_server.entity.TokenType;
 import com.nameless.storage_server.service.token.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +26,11 @@ public class MethodExtractor implements ExtractorService {
 
 
     @Override
-    public List<Token> extract(CompilationUnit compilationUnit, Clazz clazz) {
-        List<Token> tokens = new ArrayList<>();
+    public List<OriginalToken> extract(CompilationUnit compilationUnit, Clazz clazz) {
+        List<OriginalToken> tokens = new ArrayList<>();
 
         compilationUnit.findAll(MethodDeclaration.class).forEach(methodDecl -> {
-            Token token = tokenService.createToken(
+            OriginalToken token = tokenService.createToken(
                     methodDecl.getNameAsString(),
                     TokenType.METHOD,
                     (long) methodDecl.getRange().get().begin.line,

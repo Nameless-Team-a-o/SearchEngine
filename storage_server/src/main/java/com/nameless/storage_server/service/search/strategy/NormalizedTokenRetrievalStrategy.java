@@ -1,8 +1,9 @@
 package com.nameless.storage_server.service.search.strategy;
 
 import com.nameless.storage_server.dto.SearchRequestDto;
-import com.nameless.storage_server.entity.NormalizeToken;
+import com.nameless.storage_server.entity.token.OriginalToken;
 import com.nameless.storage_server.entity.TokenType;
+import com.nameless.storage_server.entity.token.Token;
 import com.nameless.storage_server.service.normlizeToken.NormalizeTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,7 @@ public class NormalizedTokenRetrievalStrategy implements TokenRetrievalStrategy 
     }
 
     @Override
-    public List<NormalizeToken> retrieveTokens(SearchRequestDto searchDto, List<String> normalizedQuery, String tokenType) {
+    public List<Token> retrieveTokens(SearchRequestDto searchDto, List<String> normalizedQuery, String tokenType) {
         if (normalizedQuery == null || normalizedQuery.isEmpty()) {
             throw new IllegalArgumentException("Normalized query list cannot be null or empty");
         }

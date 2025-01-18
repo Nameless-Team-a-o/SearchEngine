@@ -2,10 +2,10 @@ package com.nameless.storage_server.service.extractors;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.nameless.storage_server.entity.Clazz;
-import com.nameless.storage_server.entity.Token;
+import com.nameless.storage_server.entity.token.OriginalToken;
 
 import java.util.List;
 
 public interface ExtractorService {
-    List<Token> extract(CompilationUnit compilationUnit  , Clazz clazz);
+    List<OriginalToken> extract(CompilationUnit compilationUnit  , Clazz clazz);
 }

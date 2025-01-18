@@ -6,5 +6,5 @@ import java.util.List;
 
 @Component
 public interface NormalizationStep {
-    List<String> normalize(List <String> tokenWords , boolean both );
+    String normalize(String word);
 }

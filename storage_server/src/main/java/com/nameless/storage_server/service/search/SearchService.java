@@ -1,9 +1,12 @@
 package com.nameless.storage_server.service.search;
 
+import com.nameless.storage_server.dto.ClassContentResponseDTO;
 import com.nameless.storage_server.dto.SearchRequestDto;
 import com.nameless.storage_server.entity.Clazz;
+import com.nameless.storage_server.entity.Project;
 import com.nameless.storage_server.exception.AuthenticationException;
 import com.nameless.storage_server.exception.FileOperationException;
+import com.nameless.storage_server.facade.AuthenticationFacade;
 import com.nameless.storage_server.facade.manager.FacadeManager;
 import com.nameless.storage_server.facade.enums.FacadeType;
 import com.nameless.storage_server.service.ResponseBuilder;
@@ -11,6 +14,7 @@ import com.nameless.storage_server.service.clazz.ClazzService;
 import com.nameless.storage_server.service.file.FileReader;
 import com.nameless.storage_server.service.jwt.JwtService;
 
+import com.nameless.storage_server.service.project.ProjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -22,26 +26,37 @@ public class SearchService {
     private final FileReader fileReader;
     private final ResponseBuilder responseBuilder;
     private final FacadeManager facadeManager;
-
+    private final AuthenticationFacade authenticationFacade;
+    private final ProjectService projectService;
 
     public SearchService(JwtService jwtService,
                          ClazzService clazzService,
                          FileReader fileReader,
                          ResponseBuilder responseBuilder,
-                         FacadeManager facadeManager) {
+                         FacadeManager facadeManager,
+                         AuthenticationFacade authenticationFacade,
+                         ProjectService projectService) {
         this.jwtService = jwtService;
         this.clazzService = clazzService;
         this.fileReader = fileReader;
         this.responseBuilder = responseBuilder;
         this.facadeManager = facadeManager;
+        this.authenticationFacade = authenticationFacade;
+        this.projectService = projectService;
     }
 
-    public ResponseEntity<?> searchTokens(SearchRequestDto searchDto, String token) {
+    public ResponseEntity<?> search(SearchRequestDto searchDto, String token) {
         validateToken(token);
-        return facadeManager.execute(FacadeType.SEARCH,searchDto);
+        Project project = projectService.getProject(searchDto.getProjectId());
+
+        if (project.getUser().getId() != authenticationFacade.getUserFromToken(token).getId()) {
+            throw new AuthenticationException("Access denied.");
+        }
+
+        return facadeManager.execute(FacadeType.SEARCH, searchDto);
     }
 
-    public ResponseEntity<?> searchClass(Long id, String token) {
+    public ResponseEntity<ClassContentResponseDTO> searchClass(Long id, String token) {
         validateToken(token);
         Clazz clazz = clazzService.findClazzById(id);
 

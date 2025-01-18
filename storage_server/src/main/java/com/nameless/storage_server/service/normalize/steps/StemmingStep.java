@@ -11,23 +11,10 @@ import java.util.List;
 @Service
 public class StemmingStep implements NormalizationStep {
     @Override
-    public List <String> normalize(List <String> words, boolean both) {
-        // Step 2: Apply stemming to the words
-        return  stemWords(words);
-    }
-
-    public  List<String> stemWords(List<String> words) {
-        List<String> stemmedWords = new ArrayList<>();
+    public String normalize(String word) {
         EnglishStemmer stemmer = new EnglishStemmer();
-        for (String word : words) {
-            stemmer.setCurrent(word);
-            if (stemmer.stem()) {
-                stemmedWords.add(stemmer.getCurrent());
-            } else {
-                stemmedWords.add(word); // If stemming fails, use the original word
-            }
-        }
+        stemmer.setCurrent(word);
 
-        return stemmedWords;
+        return stemmer.stem() ? stemmer.getCurrent() : word;
     }
 }

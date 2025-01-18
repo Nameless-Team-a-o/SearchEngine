@@ -2,7 +2,9 @@ package com.nameless.storage_server.service.extractors;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.nameless.storage_server.entity.Clazz;
-import com.nameless.storage_server.entity.Token;
+import com.nameless.storage_server.entity.token.OriginalToken;
+import com.nameless.storage_server.service.normalize.steps.LemmatizationStep;
+import com.nameless.storage_server.service.normalize.steps.StemmingStep;
 import com.nameless.storage_server.service.processor.FileProcessorService;
 import com.nameless.storage_server.service.normalize.manager.NormalizeManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +40,11 @@ public class ExtractManager {
 
         logger.info("Extracting tokens...");
 
-        List<Token> tokens = extractors.stream()
+        List<OriginalToken> tokens = extractors.stream()
                 .flatMap(extractor -> extractor.extract(compilationUnit, clazz).stream())
                 .toList();
-
-        normalizeManager.normalizeTokens(tokens, true, true);
+        
+        // TODO: Enum instead of List.of(...)
+        normalizeManager.normalizeTokens(tokens, List.of(new LemmatizationStep(), new StemmingStep()));
     }
 }

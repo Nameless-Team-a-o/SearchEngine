@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ResponseBuilder {
-    public ResponseEntity<?> buildClassContentResponse(String filePath, String content , Long projectID) {
+    public ResponseEntity<ClassContentResponseDTO> buildClassContentResponse(String filePath, String content , Long projectID) {
         return ResponseEntity.ok(new ClassContentResponseDTO(filePath, content , projectID));
     }
     public <T> ResponseEntity<T> buildSuccessResponse(T data) {
