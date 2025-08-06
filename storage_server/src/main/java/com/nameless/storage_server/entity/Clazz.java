@@ -1,5 +1,7 @@
 package com.nameless.storage_server.entity;
 
+import com.nameless.storage_server.entity.token.NormalizedToken;
+import com.nameless.storage_server.entity.token.OriginalToken;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,10 +20,10 @@ public class Clazz {
     private Project project;
 
     @OneToMany(mappedBy = "clazz", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Token> tokens = new ArrayList<>();
+    private List<OriginalToken> tokens = new ArrayList<>();
 
     @OneToMany(mappedBy = "clazz", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<NormalizeToken> normalizeTokens = new ArrayList<>();
+    private List<NormalizedToken> normalizeTokens = new ArrayList<>();
 
     public Clazz(String className, String filePath, Project project) {
         this.className = className;
@@ -41,11 +43,11 @@ public class Clazz {
         this.id = id;
     }
 
-    public List<Token> getTokens() {
+    public List<OriginalToken> getTokens() {
         return tokens;
     }
 
-    public void setTokens(List<Token> tokens) {
+    public void setTokens(List<OriginalToken> tokens) {
         this.tokens = tokens;
     }
 
@@ -73,11 +75,11 @@ public class Clazz {
         this.className = className;
     }
 
-    public List<NormalizeToken> getNormalizeTokens() {
+    public List<NormalizedToken> getNormalizeTokens() {
         return normalizeTokens;
     }
 
-    public void setNormalizeTokens(List<NormalizeToken> normalizeTokens) {
+    public void setNormalizeTokens(List<NormalizedToken> normalizeTokens) {
         this.normalizeTokens = normalizeTokens;
     }
 }

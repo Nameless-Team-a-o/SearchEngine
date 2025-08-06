@@ -1,8 +1,9 @@
 package com.nameless.storage_server.service.search.strategy;
 
 import com.nameless.storage_server.dto.SearchRequestDto;
-import com.nameless.storage_server.entity.Token;
+import com.nameless.storage_server.entity.token.OriginalToken;
 import com.nameless.storage_server.entity.TokenType;
+import com.nameless.storage_server.entity.token.Token;
 import com.nameless.storage_server.service.token.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -207,7 +207,7 @@ public class AuthenticationService {
   }
 
   // Saves the refresh token to the database for the user
-  private void saveUserToken(User user, String refreshToken) {
+  public void saveUserToken(User user, String refreshToken) {
     RefreshToken token = RefreshToken.builder()
             .user(user)
             .token(TokenHashingService.hashToken(refreshToken))
