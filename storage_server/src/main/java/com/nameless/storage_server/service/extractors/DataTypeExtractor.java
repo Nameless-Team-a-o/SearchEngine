@@ -4,7 +4,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.type.Type;
 import com.nameless.storage_server.entity.Clazz;
-import com.nameless.storage_server.entity.Token;
+import com.nameless.storage_server.entity.token.OriginalToken;
 import com.nameless.storage_server.entity.TokenType;
 import com.nameless.storage_server.service.token.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +25,12 @@ public class DataTypeExtractor implements ExtractorService {
     }
 
     @Override
-    public List<Token> extract(CompilationUnit compilationUnit, Clazz clazz) {
-        List<Token> tokens = new ArrayList<>();
+    public List<OriginalToken> extract(CompilationUnit compilationUnit, Clazz clazz) {
+        List<OriginalToken> tokens = new ArrayList<>();
 
         compilationUnit.findAll(VariableDeclarator.class).forEach(varDecl -> {
             Type type = varDecl.getType();
-            Token token =tokenService.createToken(
+            OriginalToken token =tokenService.createToken(
                     type.asString(),
                     TokenType.DATATYPE,
                     (long) varDecl.getRange().get().begin.line,

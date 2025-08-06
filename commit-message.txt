@@ -1,0 +1,32 @@
+refactor(normalization): support modular & ordered execution of normalization steps with Spring @Order
+
+This commit introduces several improvements to the normalization pipeline to support multiple, pluggable normalization strategies (e.g., Lemmatization, Stemming), executed in a specific order using Spring’s @Order annotation.
+
+🔧 Key Changes:
+-------------------------
+• Changed `NormalizationStep` to a Spring-managed @Component interface to enable dynamic injection via List<NormalizationStep>.
+
+• Annotated `LemmatizationStep` and `StemmingStep` classes with @Component and @Order to ensure correct execution sequence:
+   - LemmatizationStep: @Order(1)
+   - StemmingStep: @Order(2)
+
+• Updated `ExtractManager` to autowire List<NormalizationStep> instead of individual step beans. These steps are now injected and passed to NormalizeManager as an ordered list.
+
+• Updated `NormalizeManager` to accept List<NormalizationStep> and apply each one to each token word using a flatMap. This gives a flexible and extensible way to add new steps.
+
+• Refactored `TokenStorageStrategy` to use a Set<String> (HashSet) to avoid saving duplicate tokens and prefixes to the database.
+   - Prefix filtering now ensures only meaningful (length ≥ 3) prefixes are stored.
+   - Lowercased all tokens before storage for consistency.
+
+📦 Why This Matters:
+-------------------------
+• You can now freely plug in additional normalization steps without modifying core logic.
+• Order of execution is guaranteed, preventing incorrect transformations (e.g., stemming before lemmatization).
+• Improved maintainability and conformance to SOLID principles (Open/Closed Principle).
+
+🔍 Logs & Validation:
+-------------------------
+• Logger statements added to LemmatizationStep to verify POS model loading.
+• Confirmed that lemmatization and stemming now occur in order and tokens are stored once per unique variant.
+
+# Normalization pipeline now modular, ordered, and duplication-free.

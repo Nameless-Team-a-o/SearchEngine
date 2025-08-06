@@ -1,8 +1,9 @@
 package com.nameless.storage_server.service.token;
 
 import com.nameless.storage_server.entity.Clazz;
-import com.nameless.storage_server.entity.Token;
+import com.nameless.storage_server.entity.token.OriginalToken;
 import com.nameless.storage_server.entity.TokenType;
+import com.nameless.storage_server.entity.token.Token;
 import com.nameless.storage_server.repository.TokenRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +16,11 @@ public class TokenService {
         this.tokenRepository = tokenRepository;
     }
 
-    public Token createToken(String nameAsString, TokenType tokenType, long line, Clazz clazz) {
-        return saveToken(new Token(nameAsString, tokenType, line, clazz));
+    public OriginalToken createToken(String nameAsString, TokenType tokenType, long line, Clazz clazz) {
+        return saveToken(new OriginalToken(nameAsString, tokenType, line, clazz));
     }
 
-    public Token saveToken(Token token) {
+    public OriginalToken saveToken(OriginalToken token) {
         return tokenRepository.save(token);
     }
 
@@ -29,5 +30,4 @@ public class TokenService {
     public List<Token> findTop10ByTokenAndType(String token, TokenType type){
         return tokenRepository.findTop10ByTokenAndType(token, type);
     }
-
 }

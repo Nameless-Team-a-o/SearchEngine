@@ -37,4 +37,7 @@ public class ProjectService {
         return firstSlashIndex != -1 ? filePath.substring(0, firstSlashIndex) : filePath;
     }
 
+    public Project getProject(Long projectId) {
+        return projectRepository.getReferenceById(projectId);
+    }
 }

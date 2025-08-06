@@ -1,16 +1,17 @@
-package com.nameless.storage_server.entity;
+package com.nameless.storage_server.entity.token;
 
+import com.nameless.storage_server.entity.Clazz;
+import com.nameless.storage_server.entity.TokenType;
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(indexes = {
-        @Index(name = "idx_normalize_token", columnList = "token"),
-        @Index(name = "idx_normalize_type", columnList = "type")
-})
-public class NormalizeToken {
+@MappedSuperclass
+@ToString
+public abstract class Token {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,14 +30,14 @@ public class NormalizeToken {
     @CreationTimestamp
     private LocalDateTime createdDate;
 
-    public NormalizeToken(String token, TokenType type, Long lineNumber, Clazz clazz) {
+    public Token(String token, TokenType type, Long lineNumber, Clazz clazz) {
         this.token = token;
         this.type = type;
         this.lineNumber = lineNumber;
         this.clazz = clazz;
     }
 
-    public NormalizeToken() {}
+    public Token() {}
 
     public Long getId() {
         return id;
@@ -46,28 +47,12 @@ public class NormalizeToken {
         this.id = id;
     }
 
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
+    public String getToken() {
+        return token;
     }
 
-    public void setCreatedDate(LocalDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public Clazz getClazz() {
-        return clazz;
-    }
-
-    public void setClazz(Clazz clazz) {
-        this.clazz = clazz;
-    }
-
-    public Long getLineNumber() {
-        return lineNumber;
-    }
-
-    public void setLineNumber(Long lineNumber) {
-        this.lineNumber = lineNumber;
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public TokenType getType() {
@@ -78,11 +63,27 @@ public class NormalizeToken {
         this.type = type;
     }
 
-    public String getToken() {
-        return token;
+    public Long getLineNumber() {
+        return lineNumber;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setLineNumber(Long lineNumber) {
+        this.lineNumber = lineNumber;
+    }
+
+    public Clazz getClazz() {
+        return clazz;
+    }
+
+    public void setClazz(Clazz clazz) {
+        this.clazz = clazz;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
     }
 }
